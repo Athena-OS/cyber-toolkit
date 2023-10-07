@@ -37,6 +37,7 @@ fn main() {
         ];
 
     uninstall(rolepkg);
+    fastest_mirrors();
 
     // Initialization
     let home = env::var("HOME").unwrap_or_default();
@@ -125,7 +126,7 @@ fn main() {
                 "sed",
                 vec![
                     String::from("-in"),
-                    String::from("s/^role=.*/role=$role/g"),
+                    format!("s/^role=.*/role={}/g", args[1].as_str()),
                     setting_file,
                 ],
             ),

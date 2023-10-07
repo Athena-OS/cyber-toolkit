@@ -91,7 +91,7 @@ pub fn exec_eval(
 ) {
     match &return_code {
         Ok(_) => {
-            log::info!("{}", logmsg);
+            println!("{}", logmsg);
         }
         Err(e) => {
             crash(
@@ -103,6 +103,28 @@ pub fn exec_eval(
 }
 
 pub fn crash<S: AsRef<str>>(a: S, b: i32) -> ! {
-    log::error!("{}", a.as_ref());
+    println!("{}", a.as_ref());
     exit(b);
+}
+
+pub fn fastest_mirrors() {
+    println!("Getting fastest BlackLinux mirrors for your location");
+    exec_eval(
+        exec(
+            "mirroars",
+            vec![
+                String::from("-n"),
+                String::from("21"),
+                String::from("-m"),
+                String::from("15"),
+                String::from("-p"),
+                String::from("-t"),
+                String::from("-r"),
+                String::from("blackarch"),
+                String::from("/etc/pacman.d/blackarch-mirrorlist"), //In chroot we don't need to specify /mnt
+                String::from("-w"),
+            ],
+        ),
+        "Getting fastest mirrors from BlackArch",
+    );
 }

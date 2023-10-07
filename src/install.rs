@@ -1,5 +1,4 @@
 use crate::utils::*;
-use log::{error, warn};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
 use std::process::{Command, ExitStatus, Stdio};
@@ -84,7 +83,7 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
     while *retry.lock().unwrap() && retry_counter < 15 { // retry_counter should be the number of mirrors in mirrorlist
         retry = Arc::new(Mutex::new(false));
         let retry_clone = Arc::clone(&retry); // Clone for use in the thread. I need to do this because normally I cannot define a variable above and use it inside a threadzz
-        //log::info!("[ DEBUG ] Beginning retry {}", *retry.lock().unwrap());
+        //println!("[ DEBUG ] Beginning retry {}", *retry.lock().unwrap());
         let mut pkgmanager_cmd = Command::new("true")
             .spawn()
             .expect("Failed to initiialize by 'true'"); // Note that the Command type below will spawn child process, so the return type is Child, not Command. It means we need to initialize a Child type element, and we can do by .spawn().expect() over the Command type. 'true' in bash is like a NOP command
@@ -112,7 +111,7 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
                     .expect("Failed to start pacstrap");
                 pkgmanager_name = String::from("pacstrap");
             },
-            PackageManager::None => log::debug!("No package manager selected"),
+            PackageManager::None => println!("No package manager selected"),
         };
 
         //let stdout_handle = pkgmanager_cmd.stdout.take().unwrap();
@@ -138,12 +137,6 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
                 let line = line.expect("Failed to read stderr");
                 let exit_code = exit_status.code().unwrap_or(-1);
                 if exit_code == 0 {
-                    warn!(
-                        "{} warn (exit code {}): {}",
-                        pkgmanager_name,
-                        exit_code,
-                        line
-                    );
                     println!(
                         "{} warn (exit code {}): {}",
                         pkgmanager_name,
@@ -152,12 +145,6 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
                     );
                 }
                 else {
-                    error!(
-                        "{} err (exit code {}): {}",
-                        pkgmanager_name,
-                        exit_code,
-                        line
-                    );
                     println!(
                         "{} err (exit code {}): {}",
                         pkgmanager_name,
@@ -171,20 +158,20 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
                     // Extract the mirror name from the error message
                     if let Some(mirror_name) = extract_mirror_name(&line) {
                         // Check if the mirror is in one of the mirrorlist files
-                        if let Some(mirrorlist_file) = find_mirrorlist_file(&mirror_name, &pkgmanager_name) {
+                        if let Some(mirrorlist_file) = find_mirrorlist_file(&mirror_name) {
                             // Move the "Server" line within the mirrorlist file
                             if let Err(err) = move_server_line(&mirrorlist_file, &mirror_name) {
-                                error!(
+                                println!(
                                     "Failed to move 'Server' line in {}: {}",
                                     mirrorlist_file,
                                     err
                                 );
                             } else {
                                 // Update the retry flag within the Mutex
-                                log::info!("Detected unstable mirror: {}. Retrying by a new one...", mirror_name);
+                                println!("Detected unstable mirror: {}. Retrying by a new one...", mirror_name);
                                 let mut retry = retry_clone.lock().unwrap();
                                 *retry = true;
-                                //log::info!("[ DEBUG ] Unstable mirror retry {}", *retry);
+                                //println!("[ DEBUG ] Unstable mirror retry {}", *retry);
                             }
                         }
                     }
@@ -198,13 +185,13 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
 
         if !exit_status.success() {
             // Handle the error here, e.g., by logging it
-            error!("The package manager failed with exit code: {}", exit_status.code().unwrap_or(-1));
+            println!("The package manager failed with exit code: {}", exit_status.code().unwrap_or(-1));
         }
 
         // Increment the retry counter
         retry_counter += 1;
 
-        //log::info!("[ DEBUG ] End retry {}", *retry.lock().unwrap());
+        //println!("[ DEBUG ] End retry {}", *retry.lock().unwrap());
     }
 }
 
@@ -224,23 +211,13 @@ fn extract_mirror_name(error_message: &str) -> Option<String> {
 }
 
 // Function to find the mirrorlist file containing the mirror
-fn find_mirrorlist_file(mirror_name: &str, pkgmanager_name: &str) -> Option<String> {
+fn find_mirrorlist_file(mirror_name: &str) -> Option<String> {
     // Define the paths to the mirrorlist files
-    let mut mirrorlist_paths: [&str; 3] = ["", "", ""];
-    if pkgmanager_name == "pacstrap" {
-        mirrorlist_paths = [
-            "/etc/pacman.d/mirrorlist",
-            "/etc/pacman.d/chaotic-mirrorlist",
-            "/etc/pacman.d/blackarch-mirrorlist",
-        ];
-    }
-    else if pkgmanager_name == "pacman" {
-        mirrorlist_paths = [
-            "/mnt/etc/pacman.d/mirrorlist",
-            "/mnt/etc/pacman.d/chaotic-mirrorlist",
-            "/mnt/etc/pacman.d/blackarch-mirrorlist",
-        ];
-    }
+    let mirrorlist_paths = [
+        "/etc/pacman.d/mirrorlist",
+        "/etc/pacman.d/chaotic-mirrorlist",
+        "/etc/pacman.d/blackarch-mirrorlist",
+    ];
 
     // Iterate through the mirrorlist file paths
     for &mirrorlist_path in &mirrorlist_paths {
@@ -288,7 +265,7 @@ fn move_server_line(mirrorlist_path: &str, mirror_name: &str) -> io::Result<()> 
             for line in lines {
                 writeln!(file, "{}", line)?;
             }
-            log::info!("'{}' moved at the end of {}", mirror_url_line, mirrorlist_path);
+            println!("'{}' moved at the end of {}", mirror_url_line, mirrorlist_path);
         }
     }
 

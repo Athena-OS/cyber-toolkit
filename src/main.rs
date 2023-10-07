@@ -39,7 +39,6 @@ fn main() {
     uninstall(rolepkg);
 
     // Initialization
-    // Create avatar folder for free machine icons
     let home = env::var("HOME").unwrap_or_default();
     let gitsource = vec![
         "https://github.com/danielmiessler/SecLists",

@@ -91,7 +91,7 @@ pub fn exec_eval(
 ) {
     match &return_code {
         Ok(_) => {
-            println!("{}", logmsg);
+            //println!("{}", logmsg);
         }
         Err(e) => {
             crash(

@@ -108,7 +108,7 @@ pub fn crash<S: AsRef<str>>(a: S, b: i32) -> ! {
 }
 
 pub fn fastest_mirrors() {
-    println!("Getting fastest BlackLinux mirrors for your location");
+    println!("Getting fastest BlackArch mirrors for your location");
     exec_eval(
         exec(
             "mirroars",

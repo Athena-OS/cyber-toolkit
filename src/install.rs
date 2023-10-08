@@ -32,8 +32,7 @@ pub fn gitclone(gitsource: Vec<&str>) {
 
     if fs::metadata(target_file).is_err() {
         println!("Extracting rockyou.txt...");
-        let status = Command::new("sudo")
-            .arg("tar")
+        let status = Command::new("tar")
             .arg("-zxvf")
             .arg(tar_file)
             .arg("-C")

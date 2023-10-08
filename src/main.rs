@@ -125,7 +125,8 @@ fn main() {
         }
     }
 
-    let setting_file = String::from("/usr/share/athena-welcome/settings.conf");
+    let sudouser = env::var("USER").unwrap_or_default();
+    let setting_file = format!("/home/{}/.config/athena-welcome/settings.conf", sudouser);
     if fs::metadata(setting_file.clone()).is_ok() {
         exec_eval(
             exec(

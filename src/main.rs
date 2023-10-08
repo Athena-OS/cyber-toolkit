@@ -2,8 +2,8 @@ mod install;
 mod utils;
 use crate::install::*;
 use crate::utils::*;
-use std::env;
-use std::fs;
+use std::{env, fs};
+use std::io::stdin;
 
 fn main() {
 
@@ -37,15 +37,21 @@ fn main() {
         ];
 
     uninstall(rolepkg);
-    fastest_mirrors();
+    println!("Do you want to get the fastest mirrors (y/n)?");
+
+    let mut answer = String::new();
+    stdin().read_line(&mut answer).expect("Failed to read input");
+
+    if answer.trim().to_lowercase() == "y" {
+        fastest_mirrors();
+    }
 
     // Initialization
-    let home = env::var("HOME").unwrap_or_default();
     let gitsource = vec![
         "https://github.com/danielmiessler/SecLists",
         "https://github.com/DragonJAR/Security-Wordlist",
     ];
-    //////////////////////////////////
+    /////////////////
 
     match args[1].as_str() {
         "blue" => {
@@ -119,7 +125,7 @@ fn main() {
         }
     }
 
-    let setting_file = format!("{}/.config/athena-welcome/settings.conf", home);
+    let setting_file = String::from("/usr/share/athena-welcome/settings.conf");
     if fs::metadata(setting_file.clone()).is_ok() {
         exec_eval(
             exec(
@@ -133,4 +139,9 @@ fn main() {
             "Delete commented lines from file",
         );
     }
+    println!("All done. Your role has been set!");
+    
+    let mut input = String::new();
+    println!("Press Enter to continue");
+    stdin().read_line(&mut input).expect("Failed to read input");
 }

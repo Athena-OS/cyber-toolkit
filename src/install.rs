@@ -1,6 +1,6 @@
 use crate::utils::*;
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Write};
+use std::io::{self, stdin, BufRead, BufReader, Write};
 use std::process::{Command, ExitStatus, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -311,7 +311,7 @@ pub fn uninstall(rolepkg: Vec<String>) {
     println!("Do you want to remove tools of your previous roles (y/n)?");
 
     let mut answer = String::new();
-    let _ = io::stdin().read_line(&mut answer);
+    stdin().read_line(&mut answer).expect("Failed to read input");
 
     if answer.trim().to_lowercase() == "y" {
         println!("Uninstalling any previous role tools...\n");

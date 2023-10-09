@@ -151,9 +151,9 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
                         line
                     );
                 }
-
+                //line = "error: blackarch: signature from \"Levon 'noptrix' Kayan (BlackArch Developer) <noptrix@nullsecurity.net>\" is invalid".to_string(); // DEBUG TEST
                 // Check if the error message contains "failed retrieving file" and "mirror"
-                if line.contains("failed retrieving file") && line.contains("from") || (line.contains("signature from") && line.contains("is invalid")) {
+                if line.contains("failed retrieving file") && line.contains("from") {
                     // Extract the mirror name from the error message
                     if let Some(mirror_name) = extract_mirror_name(&line) {
                         // Check if the mirror is in one of the mirrorlist files
@@ -176,18 +176,24 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
                     }
                 }
                 else if line.contains("signature from") && line.contains("is invalid") {
-                    let package_name = extract_package_name(&line);
-                    let repository = get_repository_name(&package_name);
-                    println!("Package {} found in repository: {}", package_name, repository);
                     let mut mirrorlist_filename = String::new();
-                    if repository == "core" || repository == "extra" || repository == "community" || repository == "multilib" {
-                        mirrorlist_filename = String::from("/etc/pacman.d/mirrorlist");
-                    }
-                    if repository == "blackarch" {
+                    let extracted_name = extract_package_name(&line);
+                    if extracted_name == "blackarch" { // the error 'signature from xxx is invalid' could be also related to the repository itslef instead of a package
                         mirrorlist_filename = String::from("/etc/pacman.d/blackarch-mirrorlist");
                     }
-                    if repository == "chaotic-aur" {
-                        mirrorlist_filename = String::from("/etc/pacman.d/chaotic-mirrorlist");
+                    else { // if the error 'signature from xxx is invalid'
+                        let repository = get_repository_name(&extracted_name);
+                        println!("Package {} found in repository: {}", extracted_name, repository);
+                        
+                        if repository == "core" || repository == "extra" || repository == "community" || repository == "multilib" {
+                            mirrorlist_filename = String::from("/etc/pacman.d/mirrorlist");
+                        }
+                        if repository == "blackarch" {
+                            mirrorlist_filename = String::from("/etc/pacman.d/blackarch-mirrorlist");
+                        }
+                        if repository == "chaotic-aur" {
+                            mirrorlist_filename = String::from("/etc/pacman.d/chaotic-mirrorlist");
+                        }
                     }
                     
                     match get_first_mirror_name(&mirrorlist_filename) {

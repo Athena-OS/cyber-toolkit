@@ -4,6 +4,8 @@ use crate::install::*;
 use crate::utils::*;
 use std::{env, fs};
 use std::io::stdin;
+use std::process::Command;
+use std::str;
 
 fn main() {
 
@@ -125,8 +127,20 @@ fn main() {
         }
     }
 
-    let sudouser = env::var("USER").unwrap_or_default();
-    let setting_file = format!("/home/{}/.config/athena-welcome/settings.conf", sudouser);
+    let mut current_user = String::new();
+    let output = Command::new("who") // It is the only command to get the username calling sudo cyber-toolkit
+        .output()
+        .expect("Failed to execute 'who' command");
+
+    if output.status.success() {
+        let stdout = str::from_utf8(&output.stdout).expect("Failed to parse UTF-8");
+        let username = stdout.split_whitespace().next().unwrap_or("");
+        current_user = username.to_string();
+    } else {
+        eprintln!("Error: 'who' command failed");
+    }
+    let setting_file = format!("/home/{}/.config/athena-welcome/settings.conf", current_user);
+
     if fs::metadata(setting_file.clone()).is_ok() {
         exec_eval(
             exec(

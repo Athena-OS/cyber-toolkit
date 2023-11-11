@@ -118,7 +118,7 @@ pub fn fastest_mirrors() {
                 String::from("--disable-comments"),
                 String::from("--allow-root"),
                 String::from("--save"),
-                String::from("/etc/pacman.d/blackarch-mirrorlist"), //In chroot we don't need to specify /mnt
+                String::from("/etc/pacman.d/blackarch-mirrorlist"),
                 String::from("blackarch"),
             ],
         ),

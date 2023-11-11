@@ -111,18 +111,15 @@ pub fn fastest_mirrors() {
     println!("Getting fastest BlackArch mirrors for your location");
     exec_eval(
         exec(
-            "mirroars",
+            "rate-mirrors",
             vec![
-                String::from("-n"),
-                String::from("21"),
-                String::from("-m"),
-                String::from("15"),
-                String::from("-p"),
-                String::from("-t"),
-                String::from("-r"),
-                String::from("blackarch"),
+                String::from("--concurrency"),
+                String::from("40"),
+                String::from("--disable-comments"),
+                String::from("--allow-root"),
+                String::from("--save"),
                 String::from("/etc/pacman.d/blackarch-mirrorlist"), //In chroot we don't need to specify /mnt
-                String::from("-w"),
+                String::from("blackarch"),
             ],
         ),
         "Getting fastest mirrors from BlackArch",

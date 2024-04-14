@@ -107,6 +107,7 @@ pub fn crash<S: AsRef<str>>(a: S, b: i32) -> ! {
     exit(b);
 }
 
+/*
 pub fn fastest_mirrors() {
     println!("Getting fastest BlackArch mirrors for your location");
     exec_eval(
@@ -125,3 +126,4 @@ pub fn fastest_mirrors() {
         "Getting fastest mirrors from BlackArch",
     );
 }
+*/

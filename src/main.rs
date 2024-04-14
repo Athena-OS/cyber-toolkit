@@ -39,6 +39,7 @@ fn main() {
         ];
 
     uninstall(rolepkg);
+    /*
     println!("Do you want to get the fastest mirrors (y/n)?");
 
     let mut answer = String::new();
@@ -47,6 +48,7 @@ fn main() {
     if answer.trim().to_lowercase() == "y" {
         fastest_mirrors();
     }
+    */
 
     // Initialization
     let gitsource = vec![

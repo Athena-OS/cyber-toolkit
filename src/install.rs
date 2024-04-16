@@ -21,11 +21,13 @@ pub fn gitclone(gitsource: Vec<&str>) {
             eprintln!("Failed to clone {}\n", url);
         }
     }
+    /*
     install(PackageManager::Pacman, vec![
         "athena-auto-wordlists",
         "athena-fuzzdb",
         "athena-payloadsallthethings",
     ]);
+    */
 
     let target_file = "/usr/share/payloads/SecLists/Passwords/Leaked-Databases/rockyou.txt";
     let tar_file = "/usr/share/payloads/SecLists/Passwords/Leaked-Databases/rockyou.txt.tar.gz";

@@ -53,6 +53,9 @@ fn main() {
     // Initialization
     let gitsource = vec![
         "https://github.com/danielmiessler/SecLists",
+        "https://github.com/swisskyrepo/PayloadsAllTheThings",
+        "https://github.com/fuzzdb-project/fuzzdb",
+        "https://github.com/carlospolop/Auto_Wordlists",
         "https://github.com/DragonJAR/Security-Wordlist",
     ];
     /////////////////

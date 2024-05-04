@@ -51,6 +51,7 @@ fn main() {
     */
 
     // Initialization
+    /*
     let gitsource = vec![
         "https://github.com/danielmiessler/SecLists",
         "https://github.com/swisskyrepo/PayloadsAllTheThings",
@@ -58,6 +59,7 @@ fn main() {
         "https://github.com/carlospolop/Auto_Wordlists",
         "https://github.com/DragonJAR/Security-Wordlist",
     ];
+    */
     /////////////////
 
     match args[1].as_str() {
@@ -70,13 +72,13 @@ fn main() {
             install(PackageManager::Pacman, vec![
                 "athena-bountyhunter",
             ]);
-            gitclone(gitsource);
+            getpayloads();
         }
         "cracker" => {
             install(PackageManager::Pacman, vec![
                 "athena-cracker",
             ]);
-            gitclone(gitsource);
+            getpayloads();
         }
         "dos" => {
             install(PackageManager::Pacman, vec![
@@ -112,19 +114,19 @@ fn main() {
             install(PackageManager::Pacman, vec![
                 "athena-redteamer",
             ]);
-            gitclone(gitsource);
+            getpayloads();
         }
         "student" => {
             install(PackageManager::Pacman, vec![
                 "athena-student",
             ]);
-            gitclone(gitsource);
+            getpayloads();
         }
         "web" => {
             install(PackageManager::Pacman, vec![
                 "athena-webpentester",
             ]);
-            gitclone(gitsource);
+            getpayloads();
         }
         _ => {
             println!("Invalid command: {}", args[1]);

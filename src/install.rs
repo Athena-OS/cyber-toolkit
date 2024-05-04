@@ -5,8 +5,9 @@ use std::process::{Command, ExitStatus, Stdio};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-pub fn gitclone(gitsource: Vec<&str>) {
-
+//pub fn gitclone(gitsource: Vec<&str>) {
+pub fn getpayloads() {
+    /*
     for url in &gitsource {
         let targetdir = "/usr/share/payloads/";
         println!("Retrieving {}...", url);
@@ -21,16 +22,18 @@ pub fn gitclone(gitsource: Vec<&str>) {
             eprintln!("Failed to clone {}\n", url);
         }
     }
-    /*
-    install(PackageManager::Pacman, vec![
-        "athena-auto-wordlists",
-        "athena-fuzzdb",
-        "athena-payloadsallthethings",
-    ]);
     */
 
-    let target_file = "/usr/share/payloads/SecLists/Passwords/Leaked-Databases/rockyou.txt";
-    let tar_file = "/usr/share/payloads/SecLists/Passwords/Leaked-Databases/rockyou.txt.tar.gz";
+    install(PackageManager::Pacman, vec![
+        "autowordlists",
+        "fuzzdb",
+        "payloadsallthethings",
+        "seclists",
+        "security-wordlist",
+    ]);
+
+    let target_file = "/usr/share/payloads/seclists/Passwords/Leaked-Databases/rockyou.txt";
+    let tar_file = "/usr/share/payloads/seclists/Passwords/Leaked-Databases/rockyou.txt.tar.gz";
 
     if fs::metadata(target_file).is_err() {
         println!("Extracting rockyou.txt...");
@@ -38,7 +41,7 @@ pub fn gitclone(gitsource: Vec<&str>) {
             .arg("-zxvf")
             .arg(tar_file)
             .arg("-C")
-            .arg("/usr/share/payloads/SecLists/Passwords/Leaked-Databases")
+            .arg("/usr/share/payloads/seclists/Passwords/Leaked-Databases")
             .status()
             .expect("Failed to execute tar command");
 
@@ -52,9 +55,9 @@ pub fn gitclone(gitsource: Vec<&str>) {
     }
 
     let paysource = vec![
-        "/usr/share/payloads/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt",
-        "/usr/share/payloads/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt",
-        "/usr/share/payloads/SecLists/Discovery/Web-Content/directory-list-2.3-big.txt",
+        "/usr/share/payloads/seclists/Discovery/Web-Content/directory-list-2.3-small.txt",
+        "/usr/share/payloads/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt",
+        "/usr/share/payloads/seclists/Discovery/Web-Content/directory-list-2.3-big.txt",
     ];
 
     for paypath in &paysource {

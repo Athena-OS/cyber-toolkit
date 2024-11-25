@@ -6,31 +6,14 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 //pub fn gitclone(gitsource: Vec<&str>) {
-pub fn getpayloads() {
-    /*
-    for url in &gitsource {
-        let targetdir = "/usr/share/payloads/";
-        println!("Retrieving {}...", url);
-        let status = Command::new("git")
-            .args(["clone", url, &(targetdir.to_owned()+url.rsplit('/').next().unwrap_or(""))])
-            .status()
-            .expect("Failed to execute git clone command");
-
-        if status.success() {
-            println!("Cloned successfully\n");
-        } else {
-            eprintln!("Failed to clone {}\n", url);
-        }
-    }
-    */
-
+pub fn getpayloads() -> Result<(), i32> {
     install(PackageManager::Pacman, vec![
         "autowordlists",
         "fuzzdb",
         "payloadsallthethings",
         "seclists",
         "security-wordlist",
-    ]);
+    ])?;
 
     let target_file = "/usr/share/payloads/seclists/Passwords/Leaked-Databases/rockyou.txt";
     let tar_file = "/usr/share/payloads/seclists/Passwords/Leaked-Databases/rockyou.txt.tar.gz";
@@ -49,6 +32,7 @@ pub fn getpayloads() {
             println!("rockyou.txt extracted successfully!");
         } else {
             eprintln!("Failed to extract rockyou.txt");
+            return Err(-1); // Propagate error with a custom exit code
         }
     } else {
         println!("rockyou.txt found!");
@@ -76,9 +60,11 @@ pub fn getpayloads() {
             "Delete commented lines from file",
         );
     }
+
+    Ok(())
 }
 
-pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
+pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
 
     // Create an Arc<Mutex<bool>> for the retry flag
     let mut retry = Arc::new(Mutex::new(true)); //Just to enter the first time in the while loop
@@ -221,23 +207,38 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) {
                         Err(err) => eprintln!("Error: {}", err),
                     }
                 }
+                else if exit_code != 0 {
+                    return Err(-1);
+                }
             }
+            Ok(())
         });
 
         // Wait for the stdout and stderr threads to finish
         //stdout_thread.join().expect("stdout thread panicked");
-        stderr_thread.join().expect("stderr thread panicked");
-
-        if !exit_status.success() {
-            // Handle the error here, e.g., by logging it
-            println!("The package manager failed with exit code: {}", exit_status.code().unwrap_or(-1));
+        // Handle the result of stderr_thread.join()
+        let stderr_thread_result = stderr_thread.join();
+        match stderr_thread_result {
+            Ok(res) => {
+                res?
+            }
+            Err(_) => {
+                eprintln!("stderr thread panicked");
+                return Err(-1); // Return an appropriate error code
+            }
         }
 
-        // Increment the retry counter
-        retry_counter += 1;
+        if !exit_status.success() {
+            println!(
+                "The package manager failed with exit code: {}",
+                exit_status.code().unwrap_or(-1)
+            );
+            return Err(exit_status.code().unwrap_or(-1));
+        }
 
-        //println!("[ DEBUG ] End retry {}", *retry.lock().unwrap());
+        retry_counter += 1;
     }
+    Ok(())
 }
 
 // Function to extract the mirror name from the error message

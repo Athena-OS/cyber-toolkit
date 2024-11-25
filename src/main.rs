@@ -8,11 +8,9 @@ use std::process::Command;
 use std::str;
 
 fn main() {
-
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
-        // Handle the case where no command-line arguments are provided
         match print_banner() {
             Ok(_) => {}
             Err(error) => {
@@ -22,6 +20,7 @@ fn main() {
         get_help();
         return;
     }
+
     let _ = print_banner();
     let rolepkg = vec![
         String::from("athena-blueteamer"),
@@ -35,98 +34,103 @@ fn main() {
         String::from("athena-osint"),
         String::from("athena-redteamer"),
         String::from("athena-student"),
-        String::from("athena-webpentester")
-        ];
+        String::from("athena-webpentester"),
+    ];
 
     uninstall(rolepkg);
-    /*
-    println!("Do you want to get the fastest mirrors (y/n)?");
-
-    let mut answer = String::new();
-    stdin().read_line(&mut answer).expect("Failed to read input");
-
-    if answer.trim().to_lowercase() == "y" {
-        fastest_mirrors();
-    }
-    */
-
-    // Initialization
-    /*
-    let gitsource = vec![
-        "https://github.com/danielmiessler/SecLists",
-        "https://github.com/swisskyrepo/PayloadsAllTheThings",
-        "https://github.com/fuzzdb-project/fuzzdb",
-        "https://github.com/carlospolop/Auto_Wordlists",
-        "https://github.com/DragonJAR/Security-Wordlist",
-    ];
-    */
-    /////////////////
 
     match args[1].as_str() {
         "blue" => {
-            install(PackageManager::Pacman, vec![
-                "athena-blueteamer",
-            ]);
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-blueteamer"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "bugbounty" => {
-            install(PackageManager::Pacman, vec![
-                "athena-bountyhunter",
-            ]);
-            getpayloads();
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-bountyhunter"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
+            if let Err(code) = getpayloads() {
+                eprintln!("Failed to get payloads with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "cracker" => {
-            install(PackageManager::Pacman, vec![
-                "athena-cracker",
-            ]);
-            getpayloads();
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-cracker"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
+            if let Err(code) = getpayloads() {
+                eprintln!("Failed to get payloads with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "dos" => {
-            install(PackageManager::Pacman, vec![
-                "athena-dos",
-            ]);
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-dos"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "forensic" => {
-            install(PackageManager::Pacman, vec![
-                "athena-forensic",
-            ]);
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-forensic"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "malware" => {
-            install(PackageManager::Pacman, vec![
-                "athena-malware",
-            ]);
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-malware"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "mobile" => {
-            install(PackageManager::Pacman, vec![
-                "athena-mobile",
-            ]);
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-mobile"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "network" => {
-            install(PackageManager::Pacman, vec![
-                "athena-network",
-            ]);
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-network"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "osint" => {
-            install(PackageManager::Pacman, vec![
-                "athena-osint",
-            ]);
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-osint"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "red" => {
-            install(PackageManager::Pacman, vec![
-                "athena-redteamer",
-            ]);
-            getpayloads();
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-redteamer"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
+            if let Err(code) = getpayloads() {
+                eprintln!("Failed to get payloads with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "student" => {
-            install(PackageManager::Pacman, vec![
-                "athena-student",
-            ]);
-            getpayloads();
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-student"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
+            if let Err(code) = getpayloads() {
+                eprintln!("Failed to get payloads with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         "web" => {
-            install(PackageManager::Pacman, vec![
-                "athena-webpentester",
-            ]);
-            getpayloads();
+            if let Err(code) = install(PackageManager::Pacman, vec!["athena-webpentester"]) {
+                eprintln!("Installation failed with exit code: {}", code);
+                std::process::exit(code);
+            }
+            if let Err(code) = getpayloads() {
+                eprintln!("Failed to get payloads with exit code: {}", code);
+                std::process::exit(code);
+            }
         }
         _ => {
             println!("Invalid command: {}", args[1]);
@@ -135,7 +139,7 @@ fn main() {
     }
 
     let mut current_user = String::new();
-    let output = Command::new("who") // It is the only command to get the username calling sudo cyber-toolkit
+    let output = Command::new("who")
         .output()
         .expect("Failed to execute 'who' command");
 
@@ -162,7 +166,7 @@ fn main() {
         );
     }
     println!("All done. Your role has been set!");
-    
+
     let mut input = String::new();
     println!("Press Enter to continue");
     stdin().read_line(&mut input).expect("Failed to read input");

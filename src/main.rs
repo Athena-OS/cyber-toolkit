@@ -41,13 +41,50 @@ fn main() {
 
     match args[1].as_str() {
         "blue" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-blueteamer"]) {
+            if let Err(code) = install(
+                PackageManager::Pacman,
+                vec![
+                    "role-blueteamer",
+                    "clamav",
+                    "cryptsetup",
+                    "ddrescue",
+                    "exploitdb",
+                    "ext3grep",
+                    "extundelete",
+                    "foremost",
+                    "fwbuilder",
+                    "ghidra",
+                    "impacket",
+                    "netsniff-ng",
+                    "rkhunter",
+                    "sleuthkit",
+                    "unhide",
+                    "wireshark-qt",
+                    "zaproxy",
+                ],
+            ) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
         }
         "bugbounty" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-bountyhunter"]) {
+            if let Err(code) = install(
+                PackageManager::Pacman,
+                vec![
+                    "role-bountyhunter",
+                    "exploitdb",
+                    "findomain",
+                    "gitleaks",
+                    "hydra",
+                    "masscan",
+                    "metasploit",
+                    "nikto",
+                    "nmap",
+                    "rustscan",
+                    "sqlmap",
+                    "wpscan",
+                ],
+            ) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
@@ -57,7 +94,7 @@ fn main() {
             }
         }
         "cracker" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-cracker"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-cracker"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
@@ -67,43 +104,43 @@ fn main() {
             }
         }
         "dos" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-dos"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-dos"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
         }
         "forensic" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-forensic"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-forensic"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
         }
         "malware" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-malware"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-malware"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
         }
         "mobile" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-mobile"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-mobile"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
         }
         "network" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-network"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-network"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
         }
         "osint" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-osint"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-osint"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
         }
         "red" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-redteamer"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-redteamer"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
@@ -113,7 +150,33 @@ fn main() {
             }
         }
         "student" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-student"]) {
+            if let Err(code) = install(
+                PackageManager::Pacman,
+                vec![
+                    "role-student",
+                    "aircrack-ng",
+                    "binwalk",
+                    "exploitdb",
+                    "ghidra",
+                    "hashcat",
+                    "hydra",
+                    "john",
+                    "kismet",
+                    "medusa",
+                    "metasploit",
+                    "mitmproxy",
+                    "nasm",
+                    "nikto",
+                    "nmap",
+                    "proxychains-ng",
+                    "radare2",
+                    "reaver",
+                    "sqlmap",
+                    "wireshark-qt",
+                    "wifite",
+                    "wpscan",
+                ],
+            ) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }
@@ -123,7 +186,7 @@ fn main() {
             }
         }
         "web" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["athena-webpentester"]) {
+            if let Err(code) = install(PackageManager::Pacman, vec!["role-webpentester"]) {
                 eprintln!("Installation failed with exit code: {}", code);
                 std::process::exit(code);
             }

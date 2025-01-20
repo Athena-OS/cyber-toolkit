@@ -23,18 +23,18 @@ fn main() {
 
     let _ = print_banner();
     let rolepkg = vec![
-        String::from("athena-blueteamer"),
-        String::from("athena-bountyhunter"),
-        String::from("athena-cracker"),
-        String::from("athena-dos"),
-        String::from("athena-forensic"),
-        String::from("athena-malware"),
-        String::from("athena-mobile"),
-        String::from("athena-network"),
-        String::from("athena-osint"),
-        String::from("athena-redteamer"),
-        String::from("athena-student"),
-        String::from("athena-webpentester"),
+        String::from("role-blueteamer"),
+        String::from("role-bountyhunter"),
+        String::from("role-cracker"),
+        String::from("role-dos"),
+        String::from("role-forensic"),
+        String::from("role-malware"),
+        String::from("role-mobile"),
+        String::from("role-network"),
+        String::from("role-osint"),
+        String::from("role-redteamer"),
+        String::from("role-student"),
+        String::from("role-webpentester"),
     ];
 
     uninstall(rolepkg);

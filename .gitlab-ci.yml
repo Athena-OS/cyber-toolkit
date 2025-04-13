@@ -1,0 +1,70 @@
+# You can override the included template(s) by including variable overrides
+# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/pipeline/#customization
+# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
+# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+stages:
+  - sync
+  - test
+
+sync-from-upstream:
+  image: alpine:latest
+  stage: sync
+  when: manual
+  before_script:
+    - apk add --no-cache git openssh bash rsync
+    - git config --global user.email "littleowl@athenaos.org"
+    - git config --global user.name "Little Owl"
+    - git remote set-url origin "https://gitlab-ci-token:${CI_PUSH_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
+  script:
+  - |
+    echo "PROJECT_PATH: ${CI_PROJECT_PATH}"
+    echo "🔄 Cloning upstream repository from: ${UPSTREAM_REPO_URL}"
+    git clone --depth=1 --branch main "$UPSTREAM_REPO_URL" /tmp/upstream
+    cd /tmp/upstream
+
+    echo "🔍 Extracting upstream version info..."
+    TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo 0)
+    COMMIT=$(git rev-parse --short HEAD)
+    echo "📌 Tag: $TAG"
+    echo "📎 Commit: $COMMIT"
+    
+    echo "Change directory to: ${CI_PROJECT_DIR}"
+    cd "$CI_PROJECT_DIR"
+
+    echo "📦 Backing up GitLab-only files..."
+    mkdir /tmp/preserve
+    cp -r ./rpm /tmp/preserve/rpm || true
+    cp .gitlab-ci.yml /tmp/preserve/gitlab-ci.yml || true
+
+    echo "📥 Syncing upstream content..."
+    rsync -a --delete /tmp/upstream/ . \
+      --exclude=.git \
+      --exclude=.github \
+      --exclude=rpm \
+      --exclude=.gitlab-ci.yml
+
+    echo "♻️ Restoring rpm/ and .gitlab-ci.yml"
+    cp -r /tmp/preserve/rpm ./ || true
+    cp /tmp/preserve/gitlab-ci.yml .gitlab-ci.yml || true
+
+    echo "🔍 Checking for differences..."
+    if git status --porcelain | grep .; then
+      SPEC_FILE="rpm/${CI_PROJECT_NAME}.spec"
+      echo "🚨 Changes detected. Updating .spec version info at ${SPEC_FILE}..."
+      sed -i "s/^Version:.*/Version:        ${TAG}/" "$SPEC_FILE"
+      sed -i "s/^Release:.*/Release:        ${COMMIT}.1.g%{?dist}/" "$SPEC_FILE"
+      sed -i "s/%changelog/%changelog\n$(date +'%a %b %d %Y') Little Owl <littleowl@athenaos.org> - synced with upstream/g" "$SPEC_FILE"
+      git add .
+      git commit -m "🔄 Sync with upstream ($TAG, $COMMIT)"
+      git push origin HEAD:main
+    else
+      echo "✅ No changes to sync."
+    fi
+
+sast:
+  stage: test
+include:
+- template: Security/SAST.gitlab-ci.yml

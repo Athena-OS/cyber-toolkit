@@ -79,6 +79,36 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
             .expect("Failed to initiialize by 'true'"); // Note that the Command type below will spawn child process, so the return type is Child, not Command. It means we need to initialize a Child type element, and we can do by .spawn().expect() over the Command type. 'true' in bash is like a NOP command
         let mut pkgmanager_name = String::new();
         match pkgmanager {
+            PackageManager::Dnf => {
+                Command::new("dnf")
+                    .arg("makecache")
+                    .arg("--refresh")
+                    .status()
+                    .expect("Failed to refresh dnf cache");
+                pkgmanager_cmd = Command::new("dnf")
+                    .arg("install")
+                    .arg("-y")
+                    .args(&pkgs)
+                    //.stdout(Stdio::piped()) // Capture stdout
+                    .stderr(Stdio::piped()) // Capture stderr
+                    .spawn()
+                    .expect("Failed to start dnf");
+                pkgmanager_name = String::from("dnf");
+            },
+            PackageManager::OSTree => {
+                Command::new("rpm-ostree")
+                    .arg("refresh-md")
+                    .status()
+                    .expect("Failed to refresh rpm-ostree cache");
+                pkgmanager_cmd = Command::new("rpm-ostree")
+                    .arg("install")
+                    .args(&pkgs)
+                    //.stdout(Stdio::piped()) // Capture stdout
+                    .stderr(Stdio::piped()) // Capture stderr
+                    .spawn()
+                    .expect("Failed to start rpm-ostree");
+                pkgmanager_name = String::from("rpm-ostree");
+            },
             PackageManager::Pacman => {
                 pkgmanager_cmd = Command::new("pacman")
                     .arg("-Syyu")
@@ -142,73 +172,75 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
                         line
                     );
                 }
-                //line = "error: blackarch: signature from \"Levon 'noptrix' Kayan (BlackArch Developer) <noptrix@nullsecurity.net>\" is invalid".to_string(); // DEBUG TEST
-                // Check if the error message contains "failed retrieving file" and "mirror"
-                if line.contains("failed retrieving file") && line.contains("from") {
-                    // Extract the mirror name from the error message
-                    if let Some(mirror_name) = extract_mirror_name(&line) {
-                        // Check if the mirror is in one of the mirrorlist files
-                        if let Some(mirrorlist_file) = find_mirrorlist_file(&mirror_name) {
-                            // Move the "Server" line within the mirrorlist file
-                            if let Err(err) = move_server_line(&mirrorlist_file, &mirror_name) {
-                                println!(
-                                    "Failed to move 'Server' line in {}: {}",
-                                    mirrorlist_file,
-                                    err
-                                );
-                            } else {
-                                // Update the retry flag within the Mutex
-                                println!("Detected unstable mirror: {}. Retrying by a new one...", mirror_name);
-                                let mut retry = retry_clone.lock().unwrap();
-                                *retry = true;
-                                //println!("[ DEBUG ] Unstable mirror retry {}", *retry);
+                if pkgmanager_name == "pacman" || pkgmanager_name == "pacstrap" {
+                    //line = "error: miaomiao: signature from \"You know (MiaoArch Developer) <youknow@miaosecurity.bau>\" is invalid".to_string(); // DEBUG TEST
+                    // Check if the error message contains "failed retrieving file" and "mirror"
+                    if line.contains("failed retrieving file") && line.contains("from") {
+                        // Extract the mirror name from the error message
+                        if let Some(mirror_name) = extract_mirror_name(&line) {
+                            // Check if the mirror is in one of the mirrorlist files
+                            if let Some(mirrorlist_file) = find_mirrorlist_file(&mirror_name) {
+                                // Move the "Server" line within the mirrorlist file
+                                if let Err(err) = move_server_line(&mirrorlist_file, &mirror_name) {
+                                    println!(
+                                        "Failed to move 'Server' line in {}: {}",
+                                        mirrorlist_file,
+                                        err
+                                    );
+                                } else {
+                                    // Update the retry flag within the Mutex
+                                    println!("Detected unstable mirror: {}. Retrying by a new one...", mirror_name);
+                                    let mut retry = retry_clone.lock().unwrap();
+                                    *retry = true;
+                                    //println!("[ DEBUG ] Unstable mirror retry {}", *retry);
+                                }
                             }
                         }
                     }
-                }
-                else if line.contains("signature from") && line.contains("is invalid") {
-                    let mut mirrorlist_filename = String::new();
-                    let extracted_name = extract_package_name(&line);
-                    if extracted_name == "blackarch" { // the error 'signature from xxx is invalid' could be also related to the repository itslef instead of a package
-                        mirrorlist_filename = String::from("/etc/pacman.d/blackarch-mirrorlist");
-                    }
-                    else { // if the error 'signature from xxx is invalid'
-                        let repository = get_repository_name(&extracted_name);
-                        println!("Package {} found in repository: {}", extracted_name, repository);
-                        
-                        if repository == "core" || repository == "extra" || repository == "community" || repository == "multilib" {
-                            mirrorlist_filename = String::from("/etc/pacman.d/mirrorlist");
-                        }
-                        if repository == "blackarch" {
+                    else if line.contains("signature from") && line.contains("is invalid") {
+                        let mut mirrorlist_filename = String::new();
+                        let extracted_name = extract_package_name(&line);
+                        if extracted_name == "blackarch" { // the error 'signature from xxx is invalid' could be also related to the repository itslef instead of a package
                             mirrorlist_filename = String::from("/etc/pacman.d/blackarch-mirrorlist");
                         }
-                        if repository == "chaotic-aur" {
-                            mirrorlist_filename = String::from("/etc/pacman.d/chaotic-mirrorlist");
-                        }
-                    }
-                    
-                    match get_first_mirror_name(&mirrorlist_filename) {
-                        Ok(mirror_name) => {
-                            println!("Mirror Name: {}", mirror_name);
-                            if let Err(err) = move_server_line(&mirrorlist_filename, &mirror_name) {
-                                println!(
-                                    "Failed to move 'Server' line in {}: {}",
-                                    mirrorlist_filename,
-                                    err
-                                );
-                            } else {
-                                // Update the retry flag within the Mutex
-                                println!("Detected invalid signature key in mirror: {}. Retrying by a new one...", mirror_name);
-                                let mut retry = retry_clone.lock().unwrap();
-                                *retry = true;
-                                //log::info!("[ DEBUG ] Invalid signature key in mirror retry {}", *retry);
+                        else { // if the error 'signature from xxx is invalid'
+                            let repository = get_repository_name(&extracted_name);
+                            println!("Package {} found in repository: {}", extracted_name, repository);
+
+                            if repository == "core" || repository == "extra" || repository == "community" || repository == "multilib" {
+                                mirrorlist_filename = String::from("/etc/pacman.d/mirrorlist");
+                            }
+                            if repository == "blackarch" {
+                                mirrorlist_filename = String::from("/etc/pacman.d/blackarch-mirrorlist");
+                            }
+                            if repository == "chaotic-aur" {
+                                mirrorlist_filename = String::from("/etc/pacman.d/chaotic-mirrorlist");
                             }
                         }
-                        Err(err) => eprintln!("Error: {}", err),
+
+                        match get_first_mirror_name(&mirrorlist_filename) {
+                            Ok(mirror_name) => {
+                                println!("Mirror Name: {}", mirror_name);
+                                if let Err(err) = move_server_line(&mirrorlist_filename, &mirror_name) {
+                                    println!(
+                                        "Failed to move 'Server' line in {}: {}",
+                                        mirrorlist_filename,
+                                        err
+                                    );
+                                } else {
+                                    // Update the retry flag within the Mutex
+                                    println!("Detected invalid signature key in mirror: {}. Retrying by a new one...", mirror_name);
+                                    let mut retry = retry_clone.lock().unwrap();
+                                    *retry = true;
+                                    //log::info!("[ DEBUG ] Invalid signature key in mirror retry {}", *retry);
+                                }
+                            }
+                            Err(err) => eprintln!("Error: {}", err),
+                        }
                     }
-                }
-                else if exit_code != 0 {
-                    return Err(-1);
+                    else if exit_code != 0 {
+                        return Err(-1);
+                    }
                 }
             }
             Ok(())
@@ -318,7 +350,7 @@ fn move_server_line(mirrorlist_path: &str, mirror_name: &str) -> io::Result<()> 
     Ok(())
 }
 
-pub fn uninstall(rolepkg: Vec<String>) {
+pub fn uninstall(pkgmanager: PackageManager, rolepkg: Vec<String>) {
     println!("Do you want to remove tools of your previous roles (y/n)?");
 
     let mut answer = String::new();
@@ -328,8 +360,8 @@ pub fn uninstall(rolepkg: Vec<String>) {
         println!("Uninstalling any previous role tools...\n");
 
         for pkg in rolepkg {
-            if is_package_installed(&pkg) {
-                if uninstall_packages(vec![pkg]) {
+            if is_package_installed(pkgmanager, &pkg) {
+                if uninstall_packages(pkgmanager, vec![pkg]) {
                     println!("Packages uninstalled successfully.");
                 } else {
                     println!("Failed to uninstall role package.");
@@ -340,17 +372,34 @@ pub fn uninstall(rolepkg: Vec<String>) {
     }
 }
 
-fn is_package_installed(package_name: &str) -> bool {
-    let status: ExitStatus = Command::new("pacman")
-        .arg("-Qq")
-        .arg(package_name)
-        .stderr(std::process::Stdio::null())
-        .status()
-        .expect("Failed to execute 'pacman -Qq' command.");
+fn is_package_installed(pkgmanager: PackageManager, package_name: &str) -> bool {
+    let status: ExitStatus = match pkgmanager {
+        PackageManager::Dnf | PackageManager::OSTree => {
+            Command::new("rpm")
+                .arg("-q")
+                .arg(package_name)
+                .stderr(Stdio::null())
+                .stdout(Stdio::null())
+                .status()
+                .expect("Failed to execute rpm -q")
+        },        
+        PackageManager::Pacman => {
+            Command::new("pacman")
+                .arg("-Qq")
+                .arg(package_name)
+                .stderr(Stdio::null())
+                .status()
+                .expect("Failed to execute pacman -Qq")
+        },
+        _ => {
+            eprintln!("Unsupported package manager for checking installed packages.");
+            return false;
+        }
+    };
 
-    // Check if the command exited successfully (status code 0) to determine if the package is installed
     status.success()
 }
+
 
 /*fn get_package_dependencies(package_name: &str) -> Vec<String> {
     let output = Command::new("pacman")
@@ -386,21 +435,45 @@ fn is_package_installed(package_name: &str) -> bool {
     dependencies
 }*/
 
-fn uninstall_packages(pkgs: Vec<String>) -> bool {
+
+fn uninstall_packages(pkgmanager: PackageManager, pkgs: Vec<String>) -> bool {
     for package in pkgs {
-        let status: ExitStatus = Command::new("pacman")
-            .arg("-Rs")
-            .arg("--noconfirm")
-            .arg(package.clone())
-            .status()
-            .expect("Failed to execute 'pacman -Rs --noconfirm' command.");
+        let status: ExitStatus = match pkgmanager {
+            PackageManager::Dnf => {
+                Command::new("dnf")
+                    .arg("remove")
+                    .arg("-y")
+                    .arg(&package)
+                    .status()
+                    .expect("Failed to execute dnf uninstall")
+            },
+            PackageManager::OSTree => {
+                Command::new("rpm-ostree")
+                    .arg("uninstall")
+                    .arg(&package)
+                    .status()
+                    .expect("Failed to execute rpm-ostree uninstall")
+            },            
+            PackageManager::Pacman => {
+                Command::new("pacman")
+                    .arg("-Rs")
+                    .arg("--noconfirm")
+                    .arg(&package)
+                    .status()
+                    .expect("Failed to execute pacman uninstall")
+            },
+            _ => {
+                eprintln!("Unsupported package manager for uninstall.");
+                return false;
+            }
+        };
 
         if !status.success() {
             eprintln!("Failed to uninstall package: {}", package);
             return false;
         }
     }
-    
+
     true
 }
 

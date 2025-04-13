@@ -7,8 +7,28 @@ use std::io::stdin;
 use std::process::Command;
 use std::str;
 
+fn detect_package_manager() -> PackageManager {
+    if is_command_available("pacman") {
+        PackageManager::Pacman
+    } else if is_command_available("dnf") {
+        PackageManager::Dnf
+    } else if is_command_available("rpm-ostree") {
+        PackageManager::OSTree
+    }
+    else {
+        PackageManager::None
+    }
+}
+
+fn is_command_available(cmd: &str) -> bool {
+    which::which(cmd).is_ok()
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
+    let manager = detect_package_manager();
+
+    println!("Detected package manager: {:?}", manager);
 
     if args.len() < 2 {
         match print_banner() {
@@ -37,12 +57,12 @@ fn main() {
         String::from("role-webpentester"),
     ];
 
-    uninstall(rolepkg);
+    uninstall(manager, rolepkg);
 
     match args[1].as_str() {
         "blue" => {
             if let Err(code) = install(
-                PackageManager::Pacman,
+                manager,
                 vec![
                     "role-blueteamer",
                     "clamav",

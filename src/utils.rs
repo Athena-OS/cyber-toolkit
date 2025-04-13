@@ -6,6 +6,12 @@ use std::env;
 
 #[derive(Debug, ValueEnum, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PackageManager {
+    #[value(name = "dnf")]
+    Dnf,
+
+    #[value(name = "rpm-ostree")]
+    OSTree,
+
     #[value(name = "pacman")]
     Pacman,
 

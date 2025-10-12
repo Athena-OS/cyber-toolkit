@@ -111,9 +111,9 @@ pub fn exec_eval(
 
 pub fn load_role_packages(role: &str) -> Result<Vec<String>, io::Error> {
     let candidates = [
-        format!("./{}.role", role),
-        format!("./roles/{}.role", role),
-        format!("/usr/share/athena/roles/{}.role", role),
+        format!("./{role}.role"),
+        format!("./roles/{role}.role"),
+        format!("/usr/share/athena/roles/{role}.role"),
     ];
 
     for path in &candidates {
@@ -121,7 +121,7 @@ pub fn load_role_packages(role: &str) -> Result<Vec<String>, io::Error> {
             let mut pkgs: Vec<String> = Vec::new();
             for line in content.lines() {
                 // Remove inline comments after '#', then trim
-                let clean = line.splitn(2, '#').next().unwrap_or("").trim();
+                let clean = line.split('#').next().unwrap_or("").trim();
                 if !clean.is_empty() {
                     pkgs.push(clean.to_string());
                 }
@@ -132,7 +132,7 @@ pub fn load_role_packages(role: &str) -> Result<Vec<String>, io::Error> {
 
     Err(io::Error::new(
         io::ErrorKind::NotFound,
-        format!("Role file for '{}' not found (checked: {:?})", role, candidates),
+        format!("Role file for '{role}' not found (checked: {candidates:?})"),
     ))
 }
 

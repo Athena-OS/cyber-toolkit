@@ -92,7 +92,7 @@ fn main() {
     let role_filebase = match role_to_filebase(role_arg) {
         Some(rb) => rb,
         None => {
-            println!("Invalid command: {}", role_arg);
+            println!("Invalid command: {role_arg}");
             get_help();
             return;
         }
@@ -102,11 +102,11 @@ fn main() {
     let pkgs = match load_role_packages(role_filebase) {
         Ok(v) if !v.is_empty() => v,
         Ok(_) => {
-            eprintln!("Role file '{}' was found but empty.", role_filebase);
+            eprintln!("Role file '{role_filebase}' was found but empty.");
             std::process::exit(-1);
         }
         Err(e) => {
-            eprintln!("Failed to load role file for '{}': {e}", role_filebase);
+            eprintln!("Failed to load role file for '{role_filebase}': {e}");
             std::process::exit(-1);
         }
     };

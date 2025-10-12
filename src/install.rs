@@ -7,7 +7,7 @@ use std::thread;
 
 //pub fn gitclone(gitsource: Vec<&str>) {
 pub fn getpayloads() -> Result<(), i32> {
-    install(PackageManager::Pacman, vec![
+    install(PackageManager::Pacman, &[
         "autowordlists",
         "fuzzdb",
         "payloadsallthethings",
@@ -64,7 +64,7 @@ pub fn getpayloads() -> Result<(), i32> {
     Ok(())
 }
 
-pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
+pub fn install(pkgmanager: PackageManager, pkgs: &[&str]) -> Result<(), i32> {
 
     // Create an Arc<Mutex<bool>> for the retry flag
     let mut retry = Arc::new(Mutex::new(true)); //Just to enter the first time in the while loop
@@ -88,7 +88,7 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
                 pkgmanager_cmd = Command::new("dnf")
                     .arg("install")
                     .arg("-y")
-                    .args(&pkgs)
+                    .args(pkgs)
                     //.stdout(Stdio::piped()) // Capture stdout
                     .stderr(Stdio::piped()) // Capture stderr
                     .spawn()
@@ -102,7 +102,7 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
                     .expect("Failed to refresh rpm-ostree cache");
                 pkgmanager_cmd = Command::new("rpm-ostree")
                     .arg("install")
-                    .args(&pkgs)
+                    .args(pkgs)
                     //.stdout(Stdio::piped()) // Capture stdout
                     .stderr(Stdio::piped()) // Capture stderr
                     .spawn()
@@ -114,7 +114,7 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
                     .arg("-Syyu")
                     .arg("--needed")
                     .arg("--noconfirm")
-                    .args(&pkgs)
+                    .args(pkgs)
                     //.stdout(Stdio::piped()) // Capture stdout
                     .stderr(Stdio::piped()) // Capture stderr
                     .spawn()
@@ -124,7 +124,7 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
             PackageManager::Pacstrap => {
                 pkgmanager_cmd = Command::new("pacstrap")
                     .arg("/mnt")
-                    .args(&pkgs)
+                    .args(pkgs)
                     //.stdout(Stdio::piped()) // Capture stdout
                     .stderr(Stdio::piped()) // Capture stderr
                     .spawn()
@@ -158,18 +158,12 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
                 let exit_code = exit_status.code().unwrap_or(-1);
                 if exit_code == 0 {
                     println!(
-                        "{} warn (exit code {}): {}",
-                        pkgmanager_name,
-                        exit_code,
-                        line
+                        "{pkgmanager_name} warn (exit code {exit_code}): {line}"
                     );
                 }
                 else {
                     println!(
-                        "{} err (exit code {}): {}",
-                        pkgmanager_name,
-                        exit_code,
-                        line
+                        "{pkgmanager_name} err (exit code {exit_code}): {line}"
                     );
                 }
                 if pkgmanager_name == "pacman" || pkgmanager_name == "pacstrap" {
@@ -183,13 +177,11 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
                                 // Move the "Server" line within the mirrorlist file
                                 if let Err(err) = move_server_line(&mirrorlist_file, &mirror_name) {
                                     println!(
-                                        "Failed to move 'Server' line in {}: {}",
-                                        mirrorlist_file,
-                                        err
+                                        "Failed to move 'Server' line in {mirrorlist_file}: {err}"
                                     );
                                 } else {
                                     // Update the retry flag within the Mutex
-                                    println!("Detected unstable mirror: {}. Retrying by a new one...", mirror_name);
+                                    println!("Detected unstable mirror: {mirror_name}. Retrying by a new one...");
                                     let mut retry = retry_clone.lock().unwrap();
                                     *retry = true;
                                     //println!("[ DEBUG ] Unstable mirror retry {}", *retry);
@@ -205,7 +197,7 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
                         }
                         else { // if the error 'signature from xxx is invalid'
                             let repository = get_repository_name(&extracted_name);
-                            println!("Package {} found in repository: {}", extracted_name, repository);
+                            println!("Package {extracted_name} found in repository: {repository}");
 
                             if repository == "core" || repository == "extra" || repository == "community" || repository == "multilib" {
                                 mirrorlist_filename = String::from("/etc/pacman.d/mirrorlist");
@@ -220,22 +212,20 @@ pub fn install(pkgmanager: PackageManager, pkgs: Vec<&str>) -> Result<(), i32> {
 
                         match get_first_mirror_name(&mirrorlist_filename) {
                             Ok(mirror_name) => {
-                                println!("Mirror Name: {}", mirror_name);
+                                println!("Mirror Name: {mirror_name}");
                                 if let Err(err) = move_server_line(&mirrorlist_filename, &mirror_name) {
                                     println!(
-                                        "Failed to move 'Server' line in {}: {}",
-                                        mirrorlist_filename,
-                                        err
+                                        "Failed to move 'Server' line in {mirrorlist_filename}: {err}"
                                     );
                                 } else {
                                     // Update the retry flag within the Mutex
-                                    println!("Detected invalid signature key in mirror: {}. Retrying by a new one...", mirror_name);
+                                    println!("Detected invalid signature key in mirror: {mirror_name}. Retrying by a new one...");
                                     let mut retry = retry_clone.lock().unwrap();
                                     *retry = true;
                                     //log::info!("[ DEBUG ] Invalid signature key in mirror retry {}", *retry);
                                 }
                             }
-                            Err(err) => eprintln!("Error: {}", err),
+                            Err(err) => eprintln!("Error: {err}"),
                         }
                     }
                     else if exit_code != 0 {
@@ -341,38 +331,46 @@ fn move_server_line(mirrorlist_path: &str, mirror_name: &str) -> io::Result<()> 
                 .open(mirrorlist_path)?;
 
             for line in lines {
-                writeln!(file, "{}", line)?;
+                writeln!(file, "{line}")?;
             }
-            println!("'{}' moved at the end of {}", mirror_url_line, mirrorlist_path);
+            println!("'{mirror_url_line}' moved at the end of {mirrorlist_path}");
         }
     }
 
     Ok(())
 }
 
-pub fn uninstall(pkgmanager: PackageManager, rolepkg: Vec<String>) {
+pub fn uninstall(pkgmanager: PackageManager, rolepkg: Vec<&[&str]>) {
     println!("Do you want to remove tools of your previous roles (y/n)?");
 
     let mut answer = String::new();
     stdin().read_line(&mut answer).expect("Failed to read input");
 
-    if answer.trim().to_lowercase() == "y" {
+    if answer.trim().eq_ignore_ascii_case("y") {
         println!("Uninstalling any previous role tools...\n");
 
-        for pkg in rolepkg {
-            if is_package_installed(pkgmanager, &pkg) {
-                if uninstall_packages(pkgmanager, vec![pkg]) {
-                    println!("Packages uninstalled successfully.");
-                } else {
-                    println!("Failed to uninstall role package.");
+        // iterate through each role
+        for role in rolepkg {
+            // iterate through each package in that role
+            for &pkg in role {
+                if is_package_installed(&pkgmanager, pkg) {
+                    println!("Uninstalling package: {pkg}");
+
+                    // pass Vec<String> to uninstall_packages
+                    if uninstall_packages(&pkgmanager, vec![pkg.to_string()]) {
+                        println!("Successfully uninstalled: {pkg}");
+                    } else {
+                        eprintln!("Failed to uninstall: {pkg}");
+                    }
                 }
-                //let roletools = get_package_dependencies(&pkg);
             }
         }
+    } else {
+        println!("Skipping uninstallation.");
     }
 }
 
-fn is_package_installed(pkgmanager: PackageManager, package_name: &str) -> bool {
+fn is_package_installed(pkgmanager: &PackageManager, package_name: &str) -> bool {
     let status: ExitStatus = match pkgmanager {
         PackageManager::Dnf | PackageManager::OSTree => {
             Command::new("rpm")
@@ -382,12 +380,13 @@ fn is_package_installed(pkgmanager: PackageManager, package_name: &str) -> bool 
                 .stdout(Stdio::null())
                 .status()
                 .expect("Failed to execute rpm -q")
-        },        
+        },
         PackageManager::Pacman => {
             Command::new("pacman")
                 .arg("-Qq")
                 .arg(package_name)
                 .stderr(Stdio::null())
+                .stdout(Stdio::null())
                 .status()
                 .expect("Failed to execute pacman -Qq")
         },
@@ -399,7 +398,6 @@ fn is_package_installed(pkgmanager: PackageManager, package_name: &str) -> bool 
 
     status.success()
 }
-
 
 /*fn get_package_dependencies(package_name: &str) -> Vec<String> {
     let output = Command::new("pacman")
@@ -435,8 +433,7 @@ fn is_package_installed(pkgmanager: PackageManager, package_name: &str) -> bool 
     dependencies
 }*/
 
-
-fn uninstall_packages(pkgmanager: PackageManager, pkgs: Vec<String>) -> bool {
+fn uninstall_packages(pkgmanager: &PackageManager, pkgs: Vec<String>) -> bool {
     for package in pkgs {
         let status: ExitStatus = match pkgmanager {
             PackageManager::Dnf => {
@@ -453,7 +450,7 @@ fn uninstall_packages(pkgmanager: PackageManager, pkgs: Vec<String>) -> bool {
                     .arg(&package)
                     .status()
                     .expect("Failed to execute rpm-ostree uninstall")
-            },            
+            },
             PackageManager::Pacman => {
                 Command::new("pacman")
                     .arg("-Rs")
@@ -469,7 +466,7 @@ fn uninstall_packages(pkgmanager: PackageManager, pkgs: Vec<String>) -> bool {
         };
 
         if !status.success() {
-            eprintln!("Failed to uninstall package: {}", package);
+            eprintln!("Failed to uninstall package: {package}");
             return false;
         }
     }

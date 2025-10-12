@@ -52,7 +52,7 @@ pub fn print_banner() -> Result<(), Box<dyn std::error::Error>> {
         let decompressed = String::from_utf8_lossy(&gunzip_output.stdout).into_owned().replace("\\x1b", "\x1b"); // .replace is needed to apply the colors on the banner string
         
         let mut stdout = io::stdout();
-        writeln!(stdout, "{}", decompressed)?;
+        writeln!(stdout, "{decompressed}")?;
     } else {
         eprintln!("'gunzip' command failed");
     }
@@ -87,8 +87,8 @@ pub fn get_help() {
 }
 
 pub fn exec(command: &str, args: Vec<String>) -> Result<std::process::ExitStatus, std::io::Error> {
-    let returncode = Command::new(command).args(args).status();
-    returncode
+    
+    Command::new(command).args(args).status()
 }
 
 pub fn exec_eval(
@@ -101,7 +101,7 @@ pub fn exec_eval(
         }
         Err(e) => {
             crash(
-                format!("{}  ERROR: {}", logmsg, e),
+                format!("{logmsg}  ERROR: {e}"),
                 return_code.unwrap_err().raw_os_error().unwrap(),
             );
         }

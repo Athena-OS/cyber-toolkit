@@ -1,6 +1,8 @@
 mod install;
+mod roles;
 mod utils;
 use crate::install::*;
+use crate::roles::*;
 use crate::utils::*;
 use std::{env, fs};
 use std::io::stdin;
@@ -28,13 +30,13 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let manager = detect_package_manager();
 
-    println!("Detected package manager: {:?}", manager);
+    println!("Detected package manager: {manager:?}");
 
     if args.len() < 2 {
         match print_banner() {
             Ok(_) => {}
             Err(error) => {
-                eprintln!("Error: {}", error);
+                eprintln!("Error: {error}");
             }
         }
         get_help();
@@ -43,175 +45,112 @@ fn main() {
 
     let _ = print_banner();
     let rolepkg = vec![
-        String::from("role-blueteamer"),
-        String::from("role-bountyhunter"),
-        String::from("role-cracker"),
-        String::from("role-dos"),
-        String::from("role-forensic"),
-        String::from("role-malware"),
-        String::from("role-mobile"),
-        String::from("role-network"),
-        String::from("role-osint"),
-        String::from("role-redteamer"),
-        String::from("role-student"),
-        String::from("role-webpentester"),
+        ROLE_BLUETEAMER,
+        ROLE_BOUNTYHUNTER,
+        ROLE_CRACKER,
+        ROLE_DOS,
+        ROLE_FORENSIC,
+        ROLE_MALWARE,
+        ROLE_MOBILE,
+        ROLE_NETWORK,
+        ROLE_OSINT,
+        ROLE_REDTEAMER,
+        ROLE_STUDENT,
+        ROLE_WEBPENTESTER,
     ];
 
     uninstall(manager, rolepkg);
 
     match args[1].as_str() {
         "blue" => {
-            if let Err(code) = install(
-                manager,
-                vec![
-                    "role-blueteamer",
-                    "clamav",
-                    "cryptsetup",
-                    "ddrescue",
-                    "exploitdb",
-                    "ext3grep",
-                    "extundelete",
-                    "foremost",
-                    "fwbuilder",
-                    "ghidra",
-                    "impacket",
-                    "netsniff-ng",
-                    "rkhunter",
-                    "sleuthkit",
-                    "unhide",
-                    "wireshark-qt",
-                    "zaproxy",
-                ],
-            ) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(manager, ROLE_BLUETEAMER) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "bugbounty" => {
-            if let Err(code) = install(
-                PackageManager::Pacman,
-                vec![
-                    "role-bountyhunter",
-                    "exploitdb",
-                    "findomain",
-                    "gitleaks",
-                    "hydra",
-                    "masscan",
-                    "metasploit",
-                    "nikto",
-                    "nmap",
-                    "rustscan",
-                    "sqlmap",
-                    "wpscan",
-                ],
-            ) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_BOUNTYHUNTER) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
             if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {}", code);
+                eprintln!("Failed to get payloads with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "cracker" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-cracker"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_CRACKER) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
             if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {}", code);
+                eprintln!("Failed to get payloads with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "dos" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-dos"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_DOS) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "forensic" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-forensic"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_FORENSIC) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "malware" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-malware"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_MALWARE) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "mobile" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-mobile"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_MOBILE) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "network" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-network"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_NETWORK) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "osint" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-osint"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_OSINT) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "red" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-redteamer"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_REDTEAMER) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
             if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {}", code);
+                eprintln!("Failed to get payloads with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "student" => {
-            if let Err(code) = install(
-                PackageManager::Pacman,
-                vec![
-                    "role-student",
-                    "aircrack-ng",
-                    "binwalk",
-                    "exploitdb",
-                    "ghidra",
-                    "hashcat",
-                    "hydra",
-                    "john",
-                    "kismet",
-                    "medusa",
-                    "metasploit",
-                    "mitmproxy",
-                    "nasm",
-                    "nikto",
-                    "nmap",
-                    "proxychains-ng",
-                    "radare2",
-                    "reaver",
-                    "sqlmap",
-                    "wireshark-qt",
-                    "wifite",
-                    "wpscan",
-                ],
-            ) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_STUDENT) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
             if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {}", code);
+                eprintln!("Failed to get payloads with exit code: {code}");
                 std::process::exit(code);
             }
         }
         "web" => {
-            if let Err(code) = install(PackageManager::Pacman, vec!["role-webpentester"]) {
-                eprintln!("Installation failed with exit code: {}", code);
+            if let Err(code) = install(PackageManager::Pacman, ROLE_WEBPENTESTER) {
+                eprintln!("Installation failed with exit code: {code}");
                 std::process::exit(code);
             }
             if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {}", code);
+                eprintln!("Failed to get payloads with exit code: {code}");
                 std::process::exit(code);
             }
         }
@@ -233,7 +172,7 @@ fn main() {
     } else {
         eprintln!("Error: 'who' command failed");
     }
-    let setting_file = format!("/home/{}/.config/athena-welcome/settings.conf", current_user);
+    let setting_file = format!("/home/{current_user}/.config/athena-welcome/settings.conf");
 
     if fs::metadata(setting_file.clone()).is_ok() {
         exec_eval(

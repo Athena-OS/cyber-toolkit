@@ -1,16 +1,13 @@
 # One package name per line. Lines starting with '#' are comments and ignored.
 
 amoco
-android-apktool
 android-sdk
 android-udev-rules
 androidsniffer
 androwarn
 angr
 angr-management
-apkid
 apkleaks
-apkstudio
 appmon
 arcane
 backdoor-apk
@@ -18,7 +15,6 @@ bagbak
 bandicoot
 barf
 beebug
-binaryninja-free
 bindead
 bindiff
 binnavi
@@ -39,7 +35,6 @@ dynamorio
 edb
 eresi
 flasm
-frida-tools
 gostringsr2
 hookanalyser
 ida-free
@@ -71,16 +66,12 @@ objection
 packerid
 pcileech
 pe-bear
-peframe
-pepper
 pev
 phoneinfoga
 phonesploit
-phonesploit-pro
 pin
 ppee
 preeny
-pwntools
 pyaxmlparser
 pyinstxtractor
 quark-engine

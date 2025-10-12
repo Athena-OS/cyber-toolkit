@@ -5,9 +5,8 @@ aeskeyfind
 afflib
 air
 atstaketools
-autopsy
+#autopsy
 bios_memimage
-bmap
 bulk-extractor
 chainsaw
 chipsec
@@ -21,9 +20,7 @@ dmde
 dumpzilla
 eindeutig
 exiflooter
-ext4magic
 extractusnjrnl
-fatback
 firefox-decrypt
 fs-nyarl
 galleta
@@ -41,7 +38,7 @@ log-file-parser
 mac-robber
 magicrescue
 malheur
-maltego
+#maltego
 malwaredetect
 mboxgrep
 memdump
@@ -104,7 +101,6 @@ trid
 undbx
 usbrip
 usnjrnl2csv
-usnjrnlcarver
 usnparser
 windows-prefetch-parser
 wmi-forensics

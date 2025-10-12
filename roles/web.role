@@ -91,7 +91,6 @@ easyfuzzer
 eos
 epicwebhoneypot
 evine
-exegol
 extended-ssrf-search
 faradaysec
 fdsploit
@@ -208,7 +207,6 @@ nosqli
 nosqli-user-pass-enum
 notspikefile
 novahot
-nsia
 nsoq
 nuclei
 nullscan
@@ -304,7 +302,6 @@ tidos-framework
 tinfoleak2
 tinja
 tlsfuzzer
-torcrawl
 trinity
 typo3scan
 udp-hunter

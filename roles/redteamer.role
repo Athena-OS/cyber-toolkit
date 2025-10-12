@@ -43,7 +43,6 @@ arjun
 armitage
 armor
 arpalert
-arpantispoofer
 arpoison
 arptools
 asn
@@ -57,7 +56,6 @@ atstaketools
 attacksurfacemapper
 attk
 automato
-autorecon
 autovpn
 autowordlists
 avaloniailspy
@@ -94,7 +92,6 @@ blackhash
 blindsql
 blindy
 blisqy
-blobhunter
 bloodhound-python
 bloodyad
 blue-hydra
@@ -218,7 +215,6 @@ csrftester
 ct-exposer
 ctypes-sh
 cudahashcat
-cutycapt
 cvechecker
 cvemap
 cve-search
@@ -344,7 +340,6 @@ evil-ssdp
 evil-winrm
 evine
 exabgp
-exegol
 exitmap
 exploitpack
 extended-ssrf-search
@@ -378,7 +373,6 @@ fireprox
 firewalk
 firstexecution
 fl0p
-flamerobin
 flashscanner
 flashsploit
 flask-unsign
@@ -487,7 +481,6 @@ hercules-payload
 hetty
 hexinject
 hikpwn
-hoaxshell
 holehe
 hollows-hunter
 homepwn
@@ -624,7 +617,6 @@ latd
 laudanum
 lbd
 lbmap
-ldapdomaindump
 ldapenum
 ldeep
 leaklooker
@@ -646,8 +638,6 @@ linikatz
 linkedin2username
 linkfinder
 linset
-linux-exploit-suggester
-linux-exploit-suggester.sh
 linux-smart-enumeration
 littleblackbox
 littlebrother
@@ -672,7 +662,7 @@ maigret
 mailsend-go
 maketh
 mallory
-maltego
+#maltego
 maltrail
 malwareanalyser
 mando.me
@@ -773,7 +763,6 @@ nosqli-user-pass-enum
 notspikefile
 novahot
 nray
-nsia
 nsntrace
 nsoq
 ntds-decode
@@ -985,7 +974,6 @@ ripdc
 rita
 rlogin-scanner
 rmiscout
-roadtools
 rombuster
 rp
 rpctools
@@ -1093,7 +1081,6 @@ smtp-user-enum
 smtp-vrfy
 smuggler
 smuggler-py
-sn1per
 snallygaster
 snare
 snarf-mitm
@@ -1156,7 +1143,6 @@ sslsniff
 sslyze
 ssrfmap
 ssrf-sheriff
-stacs
 staekka
 stardox
 stenographer
@@ -1166,7 +1152,6 @@ stig-viewer
 stowaway
 striker
 strutscan
-sub3suite
 sub7
 subfinder
 subjack
@@ -1220,9 +1205,7 @@ tlsfuzzer
 tlspretense
 tlsx
 token-hunter
-torcrawl
 torpy
-tracedump
 trape
 traxss
 trevorspray
@@ -1262,7 +1245,6 @@ urlextractor
 userrecon
 userrecon-py
 usnjrnl2csv
-usnjrnlcarver
 usnparser
 uw-loveimap
 uw-udpscan
@@ -1380,7 +1362,6 @@ yasat
 yasuo
 yawast
 ycrawler
-yeti
 yinjector
 ysoserial
 zackattack

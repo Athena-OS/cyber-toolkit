@@ -15,7 +15,6 @@ aranea
 argus
 argus-clients
 arpalert
-arpantispoofer
 arpoison
 arptools
 asnmap
@@ -27,7 +26,6 @@ batman-alfred
 beholder
 binproxy
 bittwist
-bluemaho
 bypass-firewall-dns-history
 burpsuite
 caido-cli
@@ -103,7 +101,6 @@ hashcatch
 havoc-c2
 hetty
 hexinject
-hoaxshell
 hoover
 hostapd-wpe
 hotspotter
@@ -134,7 +131,6 @@ katsnoop
 kickthemout
 kismon
 latd
-ldapdomaindump
 lft
 libosmocore
 libparistraceroute
@@ -227,7 +223,6 @@ pwncat
 pyersinia
 pyexfil
 pyrdp
-qradiolink
 ratproxy
 rbndr
 rdp-sec-check
@@ -302,7 +297,6 @@ tcptraceroute
 tgcd
 timegen
 torpy
-tracedump
 trevorproxy
 turner
 ubitack
@@ -336,7 +330,6 @@ xplico
 xxeserv
 yaf
 yate-bts
-yatebts
 ycrawler
 zackattack
 zdns

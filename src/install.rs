@@ -15,8 +15,8 @@ pub fn getpayloads() -> Result<(), i32> {
         "security-wordlist",
     ])?;
 
-    let target_file = "/usr/share/payloads/seclists/Passwords/Leaked-Databases/rockyou.txt";
-    let tar_file = "/usr/share/payloads/seclists/Passwords/Leaked-Databases/rockyou.txt.tar.gz";
+    let target_file = "/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt";
+    let tar_file = "/usr/share/seclists/Passwords/Leaked-Databases/rockyou.txt.tar.gz";
 
     if fs::metadata(target_file).is_err() {
         println!("Extracting rockyou.txt...");
@@ -24,7 +24,7 @@ pub fn getpayloads() -> Result<(), i32> {
             .arg("-zxvf")
             .arg(tar_file)
             .arg("-C")
-            .arg("/usr/share/payloads/seclists/Passwords/Leaked-Databases")
+            .arg("/usr/share/seclists/Passwords/Leaked-Databases")
             .status()
             .expect("Failed to execute tar command");
 
@@ -39,9 +39,9 @@ pub fn getpayloads() -> Result<(), i32> {
     }
 
     let paysource = vec![
-        "/usr/share/payloads/seclists/Discovery/Web-Content/directory-list-2.3-small.txt",
-        "/usr/share/payloads/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt",
-        "/usr/share/payloads/seclists/Discovery/Web-Content/directory-list-2.3-big.txt",
+        "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-small.txt",
+        "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt",
+        "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-big.txt",
     ];
 
     for paypath in &paysource {

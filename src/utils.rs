@@ -113,7 +113,7 @@ pub fn load_role_packages(role: &str) -> Result<Vec<String>, io::Error> {
     let candidates = [
         format!("./{role}.role"),
         format!("./roles/{role}.role"),
-        format!("/usr/share/athena/roles/{role}.role"),
+        format!("/usr/share/cyber-toolkit/roles/{role}.role"),
     ];
 
     for path in &candidates {

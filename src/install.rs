@@ -453,7 +453,7 @@ fn uninstall_packages(pkgmanager: &PackageManager, pkgs: Vec<String>) -> bool {
             },
             PackageManager::Pacman => {
                 Command::new("pacman")
-                    .arg("-Rs")
+                    .arg("-Rns")
                     .arg("--noconfirm")
                     .arg(&package)
                     .status()

@@ -67,7 +67,7 @@ pub fn get_help() {
     println!();
     println!("Options:");
     println!("blue                            Set Blue Teamer role.");
-    println!("bugbounty                       Set Bug Bounty Hunter role.");
+    println!("bountyhunter                    Set Bug Bounty Hunter role.");
     println!("cracker                         Set Cracker Specialist role.");
     println!("dos                             Set DoS Tester role.");
     println!("forensic                        Set Forensic Analyst role.");

@@ -37,7 +37,7 @@ fn role_to_filebase(arg: &str) -> Option<&'static str> {
         "osint" => Some("osint"),
         "red" => Some("redteamer"), // you may have a different name, adjust if needed
         "student" => Some("student"),
-        "web" => Some("webpentester"),
+        "web" => Some("web"),
         _ => None,
     }
 }
@@ -70,9 +70,9 @@ fn main() {
         "mobile",
         "network",
         "osint",
-        "redteam",
+        "redteamer",
         "student",
-        "webpentester",
+        "web",
     ];
 
     // Load role files for uninstall (silently ignore missing role files)

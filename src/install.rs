@@ -340,7 +340,7 @@ fn move_server_line(mirrorlist_path: &str, mirror_name: &str) -> io::Result<()> 
     Ok(())
 }
 
-pub fn uninstall(pkgmanager: PackageManager, rolepkg: Vec<&[&str]>) {
+pub fn uninstall(pkgmanager: PackageManager, rolepkg: Vec<Vec<String>>) {
     println!("Do you want to remove tools of your previous roles (y/n)?");
 
     let mut answer = String::new();
@@ -349,19 +349,21 @@ pub fn uninstall(pkgmanager: PackageManager, rolepkg: Vec<&[&str]>) {
     if answer.trim().eq_ignore_ascii_case("y") {
         println!("Uninstalling any previous role tools...\n");
 
-        // iterate through each role
+        // iterate through each role (each role is Vec<String>)
         for role in rolepkg {
             // iterate through each package in that role
-            for &pkg in role {
-                if is_package_installed(&pkgmanager, pkg) {
+            for pkg in role {
+                if is_package_installed(&pkgmanager, &pkg) {
                     println!("Uninstalling package: {pkg}");
 
                     // pass Vec<String> to uninstall_packages
-                    if uninstall_packages(&pkgmanager, vec![pkg.to_string()]) {
+                    if uninstall_packages(&pkgmanager, vec![pkg.clone()]) {
                         println!("Successfully uninstalled: {pkg}");
                     } else {
                         eprintln!("Failed to uninstall: {pkg}");
                     }
+                } else {
+                    // not installed: skip
                 }
             }
         }

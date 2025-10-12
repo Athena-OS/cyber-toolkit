@@ -1,8 +1,6 @@
 mod install;
-mod roles;
 mod utils;
 use crate::install::*;
-use crate::roles::*;
 use crate::utils::*;
 use std::{env, fs};
 use std::io::stdin;
@@ -26,6 +24,24 @@ fn is_command_available(cmd: &str) -> bool {
     which::which(cmd).is_ok()
 }
 
+fn role_to_filebase(arg: &str) -> Option<&'static str> {
+    match arg {
+        "blue" => Some("blueteamer"),
+        "bountyhunter" => Some("bountyhunter"),
+        "cracker" => Some("cracker"),
+        "dos" => Some("dos"),
+        "forensic" => Some("forensic"),
+        "malware" => Some("malware"),
+        "mobile" => Some("mobile"),
+        "network" => Some("network"),
+        "osint" => Some("osint"),
+        "red" => Some("redteamer"), // you may have a different name, adjust if needed
+        "student" => Some("student"),
+        "web" => Some("webpentester"),
+        _ => None,
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     let manager = detect_package_manager();
@@ -44,119 +60,71 @@ fn main() {
     }
 
     let _ = print_banner();
-    let rolepkg = vec![
-        ROLE_BLUETEAMER,
-        ROLE_BOUNTYHUNTER,
-        ROLE_CRACKER,
-        ROLE_DOS,
-        ROLE_FORENSIC,
-        ROLE_MALWARE,
-        ROLE_MOBILE,
-        ROLE_NETWORK,
-        ROLE_OSINT,
-        ROLE_REDTEAMER,
-        ROLE_STUDENT,
-        ROLE_WEBPENTESTER,
+    let known_roles = [
+        "blueteamer",
+        "bugbounty",
+        "cracker",
+        "dos",
+        "forensic",
+        "malware",
+        "mobile",
+        "network",
+        "osint",
+        "redteam",
+        "student",
+        "webpentester",
     ];
 
-    uninstall(manager, rolepkg);
+    // Load role files for uninstall (silently ignore missing role files)
+    let mut rolepkg_for_uninstall: Vec<Vec<String>> = Vec::new();
+    for role_base in &known_roles {
+        match load_role_packages(role_base) {
+            Ok(pkgs) => rolepkg_for_uninstall.push(pkgs),
+            Err(_) => { /* missing file -> skip */ }
+        }
+    }
 
-    match args[1].as_str() {
-        "blue" => {
-            if let Err(code) = install(manager, ROLE_BLUETEAMER) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "bugbounty" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_BOUNTYHUNTER) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-            if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "cracker" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_CRACKER) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-            if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "dos" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_DOS) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "forensic" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_FORENSIC) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "malware" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_MALWARE) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "mobile" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_MOBILE) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "network" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_NETWORK) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "osint" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_OSINT) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "red" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_REDTEAMER) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-            if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "student" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_STUDENT) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-            if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        "web" => {
-            if let Err(code) = install(PackageManager::Pacman, ROLE_WEBPENTESTER) {
-                eprintln!("Installation failed with exit code: {code}");
-                std::process::exit(code);
-            }
-            if let Err(code) = getpayloads() {
-                eprintln!("Failed to get payloads with exit code: {code}");
-                std::process::exit(code);
-            }
-        }
-        _ => {
-            println!("Invalid command: {}", args[1]);
+    // Ask to uninstall previous roles
+    uninstall(manager, rolepkg_for_uninstall);
+
+    // Resolve requested role file base
+    let role_arg = args[1].as_str();
+    let role_filebase = match role_to_filebase(role_arg) {
+        Some(rb) => rb,
+        None => {
+            println!("Invalid command: {}", role_arg);
             get_help();
+            return;
+        }
+    };
+
+    // Load chosen role's packages (error if not found)
+    let pkgs = match load_role_packages(role_filebase) {
+        Ok(v) if !v.is_empty() => v,
+        Ok(_) => {
+            eprintln!("Role file '{}' was found but empty.", role_filebase);
+            std::process::exit(-1);
+        }
+        Err(e) => {
+            eprintln!("Failed to load role file for '{}': {e}", role_filebase);
+            std::process::exit(-1);
+        }
+    };
+
+    // Create Vec<&str> that references the strings in pkgs (keep pkgs alive until install returns)
+    let pkg_refs: Vec<&str> = pkgs.iter().map(|s| s.as_str()).collect();
+
+    // Call install once with all packages
+    if let Err(code) = install(manager, &pkg_refs) {
+        eprintln!("Installation failed with exit code: {code}");
+        std::process::exit(code);
+    }
+
+    // If this role needs payloads as before, handle the special cases
+    if ["bugbounty", "cracker", "red", "student", "web"].contains(&role_arg) {
+        if let Err(code) = getpayloads() {
+            eprintln!("Failed to get payloads with exit code: {code}");
+            std::process::exit(code);
         }
     }
 

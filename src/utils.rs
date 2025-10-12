@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::process::{Command, exit, Stdio};
 use std::io::{self, Write};
 use std::env;
+use std::fs;
 
 #[derive(Debug, ValueEnum, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PackageManager {
@@ -106,6 +107,33 @@ pub fn exec_eval(
             );
         }
     }
+}
+
+pub fn load_role_packages(role: &str) -> Result<Vec<String>, io::Error> {
+    let candidates = [
+        format!("./{}.role", role),
+        format!("./roles/{}.role", role),
+        format!("/usr/share/athena/roles/{}.role", role),
+    ];
+
+    for path in &candidates {
+        if let Ok(content) = fs::read_to_string(path) {
+            let mut pkgs: Vec<String> = Vec::new();
+            for line in content.lines() {
+                // Remove inline comments after '#', then trim
+                let clean = line.splitn(2, '#').next().unwrap_or("").trim();
+                if !clean.is_empty() {
+                    pkgs.push(clean.to_string());
+                }
+            }
+            return Ok(pkgs);
+        }
+    }
+
+    Err(io::Error::new(
+        io::ErrorKind::NotFound,
+        format!("Role file for '{}' not found (checked: {:?})", role, candidates),
+    ))
 }
 
 pub fn crash<S: AsRef<str>>(a: S, b: i32) -> ! {

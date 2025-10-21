@@ -145,7 +145,7 @@ pub fn exec_eval(result: Result<(), std::io::Error>, logmsg: &str) {
     }
 }
 
-pub fn load_role_packages(role: &str) -> Result<Vec<String>, io::Error> {
+pub fn load_role_packages(role: &str) -> Result<(Vec<String>, String), io::Error> {
     let candidates = [
         format!("./{role}.role"),
         format!("./roles/{role}.role"),
@@ -162,7 +162,12 @@ pub fn load_role_packages(role: &str) -> Result<Vec<String>, io::Error> {
                     pkgs.push(clean.to_string());
                 }
             }
-            return Ok(pkgs);
+
+            // Try to make it absolute; if it fails, keep the found path
+            let abs = fs::canonicalize(path).unwrap_or_else(|_| std::path::PathBuf::from(path));
+            let abs_str = abs.to_string_lossy().into_owned();
+
+            return Ok((pkgs, abs_str));
         }
     }
 

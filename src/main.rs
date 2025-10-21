@@ -79,7 +79,7 @@ fn main() {
     let mut rolepkg_for_uninstall: Vec<Vec<String>> = Vec::new();
     for role_base in &known_roles {
         match load_role_packages(role_base) {
-            Ok(pkgs) => rolepkg_for_uninstall.push(pkgs),
+            Ok((pkgs, _path)) => rolepkg_for_uninstall.push(pkgs),
             Err(_) => { /* missing file -> skip */ }
         }
     }
@@ -99,10 +99,10 @@ fn main() {
     };
 
     // Load chosen role's packages (error if not found)
-    let pkgs = match load_role_packages(role_filebase) {
-        Ok(v) if !v.is_empty() => v,
-        Ok(_) => {
-            eprintln!("Role file '{role_filebase}' was found but empty.");
+    let (pkgs, role_abs_path) = match load_role_packages(role_filebase) {
+        Ok((v, p)) if !v.is_empty() => (v, p),
+        Ok((_v, p)) => {
+            eprintln!("Role file '{role_filebase}' at '{p}' was found but empty.");
             std::process::exit(-1);
         }
         Err(e) => {
@@ -110,12 +110,9 @@ fn main() {
             std::process::exit(-1);
         }
     };
-
-    // Create Vec<&str> that references the strings in pkgs (keep pkgs alive until install returns)
+    
     let pkg_refs: Vec<&str> = pkgs.iter().map(|s| s.as_str()).collect();
-
-    // Call install once with all packages
-    if let Err(code) = install(manager, &pkg_refs, role_arg, role_filebase) {
+    if let Err(code) = install(manager, &pkg_refs, &role_abs_path) {
         eprintln!("Installation failed with exit code: {code}");
         std::process::exit(code);
     }

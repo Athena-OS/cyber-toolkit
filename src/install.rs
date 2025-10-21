@@ -15,7 +15,6 @@ pub fn getpayloads() -> Result<(), i32> {
             "payloadsallthethings",
             "seclists",
         ],
-        "payloads",
         "/usr/share/cyber-toolkit/roles/payloads.role",
     )?;
 
@@ -72,11 +71,12 @@ pub fn getpayloads() -> Result<(), i32> {
 pub fn install(
     pkgmanager: PackageManager,
     pkgs: &[&str],
-    role_arg: &str,   // role name shown in the hint (e.g. "blue")
     role_path: &str,  // full path to the .role file used
 ) -> Result<(), i32> {
     let retry = Arc::new(Mutex::new(true));
     let mut retry_counter = 0;
+
+    println!("Using {role_path}...");
 
     while *retry.lock().unwrap() && retry_counter < 15 {
         // reset retry flag for this loop
@@ -267,25 +267,39 @@ pub fn install(
         // if failed, print failure line and the friendly hint LAST, then return
         if !exit_status.success() {
             println!("The package manager failed with exit code: {}", exit_code);
-
-            // find the last "target not found" line (if any) and print the hint at the very end
-            if let Some(not_found_line) = stderr_lines
-                .iter()
-                .rev()
-                .find(|l| l.contains("error: target not found:"))
-            {
-                let mut pkgname = "";
-                if let Some(last_part) = not_found_line.split(':').next_back() {
-                    pkgname = last_part.trim();
+        
+            // Collect all "target not found" occurrences (preserve order, dedup)
+            use std::collections::HashSet;
+            let mut seen = HashSet::new();
+            let mut missing_pkgs: Vec<String> = Vec::new();
+        
+            for line in &stderr_lines {
+                if let Some(idx) = line.find("error: target not found:") {
+                    // everything after the last ':' should be the package name
+                    if let Some(pkg) = line[idx..].split(':').next_back().map(|s| s.trim())
+                        && !pkg.is_empty() && seen.insert(pkg.to_string()) {
+                            missing_pkgs.push(pkg.to_string());
+                        }
                 }
-
-                // final hint printed at the end (red for error, yellow for hint)
+            }
+        
+            // Print a single, final hint covering ALL missing packages
+            if !missing_pkgs.is_empty() {
+                // bullet list string
+                let bullets = missing_pkgs
+                    .iter()
+                    .map(|p| format!("   - {}", p))
+                    .collect::<Vec<_>>()
+                    .join("\n");
+            
                 println!(
-                    "\n\x1b[31m❌ {not_found_line}\x1b[0m\n\
-                     \x1b[33m💡 Edit the related \"{role_arg}\" role file at {role_path}.role and remove \"{pkgname}\"\x1b[0m"
+                    "\x1b[31m❌ One or more packages were not found:\n{}\x1b[0m\n\
+                     \x1b[33m💡 Edit the file at {} and remove the package name(s) above.\x1b[0m",
+                    bullets,
+                    role_path // <-- pass the absolute path into install(), and print it directly
                 );
             }
-
+        
             return Err(exit_code);
         }
 

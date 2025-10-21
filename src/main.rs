@@ -115,18 +115,17 @@ fn main() {
     let pkg_refs: Vec<&str> = pkgs.iter().map(|s| s.as_str()).collect();
 
     // Call install once with all packages
-    if let Err(code) = install(manager, &pkg_refs) {
+    if let Err(code) = install(manager, &pkg_refs, role_arg, role_filebase) {
         eprintln!("Installation failed with exit code: {code}");
         std::process::exit(code);
     }
 
     // If this role needs payloads as before, handle the special cases
-    if ["bugbounty", "cracker", "red", "student", "web"].contains(&role_arg) {
-        if let Err(code) = getpayloads() {
+    if ["bugbounty", "cracker", "red", "student", "web"].contains(&role_arg)
+        && let Err(code) = getpayloads() {
             eprintln!("Failed to get payloads with exit code: {code}");
             std::process::exit(code);
         }
-    }
 
     let mut current_user = String::new();
     let output = Command::new("who")

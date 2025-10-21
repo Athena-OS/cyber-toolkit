@@ -1,7 +1,7 @@
 use clap::{ValueEnum};
 use serde::{Deserialize, Serialize};
 use std::process::{Command, exit, Stdio};
-use std::io::{self, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::env;
 use std::fs;
 
@@ -87,24 +87,60 @@ pub fn get_help() {
     println!("{} student", env::args().next().unwrap());
 }
 
-pub fn exec(command: &str, args: Vec<String>) -> Result<std::process::ExitStatus, std::io::Error> {
-    
-    Command::new(command).args(args).status()
+pub fn exec(command: &str, args: Vec<String>) -> io::Result<()> {
+    let mut child = Command::new(command)
+        .args(&args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped()) // we'll log it via info!()
+        .stderr(Stdio::piped()) // we'll capture it for error reporting
+        .spawn()?;
+
+    // --- log stdout line-by-line via info!() ---
+    let mut stdout = child.stdout.take().expect("piped stdout");
+    let stdout_handle = std::thread::spawn(move || -> io::Result<()> {
+        let mut reader = BufReader::new(&mut stdout);
+        let mut line = Vec::<u8>::new();
+        loop {
+            line.clear();
+            let n = reader.read_until(b'\n', &mut line)?;
+            if n == 0 { break; }
+            let text = String::from_utf8_lossy(&line).trim_end_matches(&['\r','\n'][..]).to_string();
+            println!("{text}");
+        }
+        Ok(())
+    });
+
+    // --- capture stderr fully (no live print) ---
+    let mut stderr = child.stderr.take().expect("piped stderr");
+    let stderr_handle = std::thread::spawn(move || -> io::Result<Vec<u8>> {
+        let mut v = Vec::new();
+        stderr.read_to_end(&mut v)?;
+        Ok(v)
+    });
+
+    let status = child.wait()?;
+    stdout_handle.join().unwrap()?;              // propagate stdout I/O errors
+    let stderr_buf = stderr_handle.join().unwrap()?; // captured stderr
+
+    if status.success() {
+        Ok(())
+    } else {
+        let err_text = String::from_utf8_lossy(&stderr_buf).trim().to_string();
+        let msg = if err_text.is_empty() {
+            format!("{command} {args:?} exited with {status}")
+        } else {
+            format!("{command} {args:?} failed: {err_text}")
+        };
+        Err(io::Error::other(msg))
+    }
 }
 
-pub fn exec_eval(
-    return_code: std::result::Result<std::process::ExitStatus, std::io::Error>,
-    logmsg: &str,
-) {
-    match &return_code {
-        Ok(_) => {
-            //println!("{}", logmsg);
-        }
+pub fn exec_eval(result: Result<(), std::io::Error>, logmsg: &str) {
+    match result {
+        Ok(()) => println!("{logmsg}"),
         Err(e) => {
-            crash(
-                format!("{logmsg}  ERROR: {e}"),
-                return_code.unwrap_err().raw_os_error().unwrap(),
-            );
+            let code = e.raw_os_error().unwrap_or(1);
+            crash(format!("{e}"), code);
         }
     }
 }

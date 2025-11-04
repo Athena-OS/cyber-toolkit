@@ -108,7 +108,6 @@ bridgekeeper
 brosec
 browselist
 browser-fuzzer
-bruno
 brute12
 brute-force
 bruteforce-luks
@@ -318,7 +317,6 @@ electric-fence
 elevate
 enabler
 encodeshellcode
-enteletaor
 entropy
 enum4linux
 enum4linux-ng
@@ -902,7 +900,6 @@ proxyscan
 ps1encode
 pspy
 pstoreview
-psudohash
 ptf
 pth-toolkit
 pulsar
@@ -946,7 +943,6 @@ recon-ng
 reconnoitre
 reconscan
 recsech
-recstudio
 redfang
 red-hawk
 redsocks
@@ -1012,7 +1008,6 @@ scrying
 sctpscan
 scylla
 sdnpwn
-seat
 seclists
 second-order
 secretfinder

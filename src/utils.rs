@@ -290,18 +290,29 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> io::Result<()> {
 pub fn ensure_user_config_initialized() -> io::Result<PathBuf> {
     let target_home = detect_target_home()?;
     let user_cfg = target_home.join(".config").join("cyber-toolkit");
+    fs::create_dir_all(&user_cfg)?; // always ensure it exists
 
-    if !user_cfg.exists() {
-        fs::create_dir_all(&user_cfg)?;
-    }
+    // Source roles (if present on the system)
+    let src_roles = Path::new("/usr/share/cyber-toolkit/roles");
 
-    if dir_is_empty(&user_cfg)? {
-        let src_roles = Path::new("/usr/share/cyber-toolkit/roles");
-        let dst_roles = user_cfg.join("roles");
+    // Destination roles under the user's config
+    let dst_roles = user_cfg.join("roles");
+
+    // If ~/.config/cyber-toolkit is completely empty, seed roles.
+    // Also seed when roles/ doesn't exist or roles/ exists but is empty.
+    let should_seed_roles =
+        dir_is_empty(&user_cfg)? ||
+        !dst_roles.exists() ||
+        dir_is_empty(&dst_roles)?;
+
+    if should_seed_roles {
         if src_roles.exists() {
+            // Ensure destination directory exists, then copy
+            fs::create_dir_all(&dst_roles)?;
             copy_dir_recursive(src_roles, &dst_roles)?;
             println!("Copied roles to {}", dst_roles.display());
         } else {
+            // No system roles to copy; at least ensure the directory exists
             fs::create_dir_all(&dst_roles)?;
         }
     }

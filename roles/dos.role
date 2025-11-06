@@ -1,38 +1,15 @@
-# One package name per line. Lines starting with '#' are comments and ignored.
+# --- DoS / DDoS and network stress-testing tools ---
+# Use only with explicit authorization.
 
-42zip
-blacknurse
-bonesi
-davoset
 ddosify
-dnsdrdos
-etherflood
-fhttp
-goldeneye
-habu
-httpbog
-hulk
-hwk
-iaxflood
-impulse
-inviteflood
-mausezahn
-nbname
-network-app-stress-tester
-nkiller2
-ntpdos
-phpstress
-pwnloris
-pyersinia
 slowloris
-slowloris-py
-sps
+hulk
+goldeneye
 synflood
-synner
 t50
-tcgetkey
-thc-ssl-dos
+mausezahn
+dnsdrdos
+ntpdos
+pyersinia
 ufonet
-wifi-pumpkin
-wreckuests
-zizzania
+httpbog

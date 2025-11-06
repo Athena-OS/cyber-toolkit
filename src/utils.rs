@@ -211,37 +211,41 @@ fn home_for_username(username: &str) -> Option<PathBuf> {
 
 /// Detect the "real" user's home even if running under sudo or su.
 fn detect_target_home() -> io::Result<PathBuf> {
-    // 1. Check SUDO_USER
-    if let Ok(sudo_user) = std::env::var("SUDO_USER")
-        && !sudo_user.trim().is_empty()
-            && let Some(home) = home_for_username(&sudo_user) {
-                return Ok(home);
+    // 1) XDG_RUNTIME_DIR => usually /run/user/<UID>
+    if let Ok(xdg) = std::env::var("XDG_RUNTIME_DIR") {
+        let xdg = xdg.trim();
+        if !xdg.is_empty() {
+            // try to extract the UID from a path like /run/user/1000
+            if let Some(pos) = xdg.rfind('/') {
+                let last = &xdg[pos + 1..];
+                if !last.is_empty() && last.chars().all(|c| c.is_ascii_digit())
+                    && last != "0"
+                        && let Some(user) = username_for_uid(last)
+                            && let Some(home) = home_for_username_from_passwd(&user) {
+                                return Ok(home);
+                            }
             }
-
-    // 2. Check LOGNAME or USER
-    for var in ["LOGNAME", "USER"] {
-        if let Ok(user) = std::env::var(var)
-            && !user.trim().is_empty() && user != "root"
-                && let Some(home) = home_for_username(&user) {
-                    return Ok(home);
-                }
+        }
     }
 
-    // 3. Try `who am i`
-    if let Ok(output) = Command::new("who").arg("am i").output()
-        && output.status.success()
-            && let Ok(stdout) = String::from_utf8(output.stdout)
-                && let Some(user) = stdout.split_whitespace().next()
-                    && let Some(home) = home_for_username(user) {
-                        return Ok(home);
-                    }
+    // 2) try to inspect /run/user for a single non-root entry (best-effort)
+    if let Ok(entries) = std::fs::read_dir("/run/user") {
+        for e in entries.flatten() {
+            if let Ok(fname) = e.file_name().into_string()
+                && fname != "0" && fname.chars().all(|c| c.is_ascii_digit())
+                    && let Some(user) = username_for_uid(&fname)
+                        && let Some(home) = home_for_username_from_passwd(&user) {
+                            return Ok(home);
+                        }
+        }
+    }
 
-    // 4. Fallback to $HOME (root in worst case)
+    // 3. Fallback to $HOME (root in worst case)
     if let Ok(home_env) = std::env::var("HOME") {
         return Ok(PathBuf::from(home_env));
     }
 
-    // 5. Last resort
+    // 4. Last resort
     Ok(PathBuf::from("/root"))
 }
 
@@ -303,6 +307,26 @@ pub fn ensure_user_config_initialized() -> io::Result<PathBuf> {
     }
 
     Ok(user_cfg)
+}
+
+// helper: resolve username from a numeric UID string by scanning /etc/passwd
+fn username_for_uid(uid: &str) -> Option<String> {
+    if uid.is_empty() { return None; }
+    if let Ok(contents) = std::fs::read_to_string("/etc/passwd") {
+        for line in contents.lines() {
+            if line.starts_with('#') || line.trim().is_empty() { continue; }
+            let parts: Vec<&str> = line.split(':').collect();
+            if parts.len() >= 3 && parts[2] == uid {
+                return Some(parts[0].to_string());
+            }
+        }
+    }
+    None
+}
+
+// helper: get home path for username (reuse existing home_for_username if you have it)
+fn home_for_username_from_passwd(username: &str) -> Option<std::path::PathBuf> {
+    home_for_username(username)
 }
 
 pub fn crash<S: AsRef<str>>(a: S, b: i32) -> ! {

@@ -1,54 +1,75 @@
-# One package name per line. Lines starting with '#' are comments and ignored.
-
-aircrack-ng
-binwalk
-burpsuite
-caido-desktop
-cewl
-commentor
-crunch
-dirb
-dirbuster
-dmitry
-edb
+# --- Recon & Host discovery ---
+nmap
 enum4linux
-evil-winrm
-fern-wifi-cracker
-ffuf
-fierce
-ghidra
-gobuster
-hashcat
-hydra
-john
-kismet
+dmitry
+theharvester
 legion
-medusa
-metasploit
-mimikatz
-mitmproxy
-nasm
+
+# --- Web discovery & content enumeration ---
+gobuster
+dirb
+ffuf
+wfuzz
+whatweb
+wafw00f
+
+# --- Web vulnerability testing ---
+nikto
+sqlmap
+wpscan
+burpsuite
+
+# --- Scanning / vulnerability aggregation ---
+osert
 nikto
 nmap
-osert
-powersploit
-proxychains-ng
+
+# --- Exploitation & post-exploitation (learning) ---
+metasploit
 pwncat-caleb
-radare2
-reaver
-responder
-rsmangler
+evil-winrm
+powersploit
 set
-spiderfoot
-spooftooph
-sqlmap
-theharvester
-unix-privesc-check
-villain
-wafw00f
-weevely
-wfuzz
-wifite
-wireshark-qt
+
+# --- Passwords & cracking ---
+hashcat
+john
+hydra
+medusa
+cewl
+crunch
 wordlister
-wpscan
+
+# --- Windows / network credential tools ---
+mimikatz
+responder
+
+# --- Network analysis & interception ---
+wireshark-qt
+mitmproxy
+proxychains-ng
+pwncat
+
+# --- Wireless / Wi-Fi tools (intro) ---
+aircrack-ng
+wifite
+kismet
+reaver
+fern-wifi-cracker
+
+# --- Reverse engineering & binary analysis (intro) ---
+ghidra
+radare2
+edb
+nasm
+
+# --- OSINT / broader reconnaissance ---
+spiderfoot
+theharvester
+
+# --- Privilege escalation & post-compromise checks ---
+unix-privesc-check
+rsmangler
+
+# --- Misc / practice / CTF helpers ---
+weevely

@@ -1,38 +1,38 @@
-# One package name per line. Lines starting with '#' are comments and ignored.
+# --- Core IR / Hunting / Visibility ---
+osquery
+zeek
+suricata
+wireshark-qt
+impacket
 
-amass
-assetfinder
-brutex
-changeme
-cisco-auditing-tool
-clamav
-cryptsetup
+# --- Disk & file forensics ---
+sleuthkit
+guymager
 dc3dd
 ddrescue
-exploitdb
-ext3grep
-extundelete
 foremost
-fwbuilder
-galleta
-ghidra
-guymager
-heartbleed-honeypot
-impacket
-mac-robber
-#maltego
-nipper
-netsniff-ng
-ollydbg
-osrframework
-patator
-rkhunter
+extundelete
 scrounge-ntfs
-sleuthkit
+mac-robber
+
+# --- Memory forensics ---
+volatility3
+
+# --- Malware triage & reverse engineering ---
+clamav
+yara
+yara-rules
+ghidra
+
+# --- Network capture / utilities ---
+netsniff-ng
+
+# --- Config / device auditing ---
+nipper
+
+# --- OSINT (keep one, broad coverage) ---
 spiderfoot
-tiger
+
+# --- Rootkit / stealth checks ---
+rkhunter
 unhide
-wapiti
-wireshark-qt
-xxeinjector
-zaproxy

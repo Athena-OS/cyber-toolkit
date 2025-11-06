@@ -7,17 +7,8 @@ use std::{fs, path::{Path, PathBuf}};
 
 #[derive(Debug, ValueEnum, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PackageManager {
-    #[value(name = "dnf")]
-    Dnf,
-
-    #[value(name = "rpm-ostree")]
-    OSTree,
-
     #[value(name = "pacman")]
     Pacman,
-
-    #[value(name = "pacstrap")]
-    Pacstrap,
 
     #[value(name = "None/DIY")]
     None,

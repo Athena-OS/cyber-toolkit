@@ -23,7 +23,8 @@ pub fn getpayloads() -> Result<(), i32> {
 
     if fs::metadata(target_file).is_err() {
         println!("Extracting rockyou.txt...");
-        let status = Command::new("tar")
+        let status = Command::new("sudo")
+            .arg("tar")
             .arg("-zxvf")
             .arg(tar_file)
             .arg("-C")
@@ -91,38 +92,9 @@ pub fn install(
 
         // spawn the chosen package manager
         match pkgmanager {
-            PackageManager::Dnf => {
-                Command::new("dnf")
-                    .arg("makecache")
-                    .arg("--refresh")
-                    .status()
-                    .expect("Failed to refresh dnf cache");
-                let child = Command::new("dnf")
-                    .arg("install")
-                    .arg("-y")
-                    .args(pkgs)
-                    .stderr(Stdio::piped())
-                    .spawn()
-                    .expect("Failed to start dnf");
-                child_result = Some(child);
-                pkgmanager_name = String::from("dnf");
-            }
-            PackageManager::OSTree => {
-                Command::new("rpm-ostree")
-                    .arg("refresh-md")
-                    .status()
-                    .expect("Failed to refresh rpm-ostree cache");
-                let child = Command::new("rpm-ostree")
-                    .arg("install")
-                    .args(pkgs)
-                    .stderr(Stdio::piped())
-                    .spawn()
-                    .expect("Failed to start rpm-ostree");
-                child_result = Some(child);
-                pkgmanager_name = String::from("rpm-ostree");
-            }
             PackageManager::Pacman => {
-                let child = Command::new("pacman")
+                let child = Command::new("sudo")
+                    .arg("pacman")
                     .arg("-Syyu")
                     .arg("--needed")
                     .arg("--noconfirm")
@@ -132,16 +104,6 @@ pub fn install(
                     .expect("Failed to start pacman");
                 child_result = Some(child);
                 pkgmanager_name = String::from("pacman");
-            }
-            PackageManager::Pacstrap => {
-                let child = Command::new("pacstrap")
-                    .arg("/mnt")
-                    .args(pkgs)
-                    .stderr(Stdio::piped())
-                    .spawn()
-                    .expect("Failed to start pacstrap");
-                child_result = Some(child);
-                pkgmanager_name = String::from("pacstrap");
             }
             PackageManager::None => {
                 println!("No package manager selected");
@@ -170,7 +132,7 @@ pub fn install(
                 collected.push(line.clone());
 
                 // mirror/signature handling while streaming (no early returns)
-                if pkg_name_for_thread == "pacman" || pkg_name_for_thread == "pacstrap" {
+                if pkg_name_for_thread == "pacman" {
                     if line.contains("failed retrieving file") && line.contains("from") {
                         if let Some(mirror_name) = extract_mirror_name(&line)
                             && let Some(mirrorlist_file) = find_mirrorlist_file(&mirror_name) {
@@ -392,15 +354,6 @@ pub fn uninstall(pkgmanager: PackageManager, rolepkg: Vec<Vec<String>>) {
 
 fn is_package_installed(pkgmanager: &PackageManager, package_name: &str) -> bool {
     let status: ExitStatus = match pkgmanager {
-        PackageManager::Dnf | PackageManager::OSTree => {
-            Command::new("rpm")
-                .arg("-q")
-                .arg(package_name)
-                .stderr(Stdio::null())
-                .stdout(Stdio::null())
-                .status()
-                .expect("Failed to execute rpm -q")
-        }
         PackageManager::Pacman => {
             Command::new("pacman")
                 .arg("-Qq")
@@ -422,18 +375,8 @@ fn is_package_installed(pkgmanager: &PackageManager, package_name: &str) -> bool
 fn uninstall_packages(pkgmanager: &PackageManager, pkgs: Vec<String>) -> bool {
     for package in pkgs {
         let status: ExitStatus = match pkgmanager {
-            PackageManager::Dnf => Command::new("dnf")
-                .arg("remove")
-                .arg("-y")
-                .arg(&package)
-                .status()
-                .expect("Failed to execute dnf uninstall"),
-            PackageManager::OSTree => Command::new("rpm-ostree")
-                .arg("uninstall")
-                .arg(&package)
-                .status()
-                .expect("Failed to execute rpm-ostree uninstall"),
-            PackageManager::Pacman => Command::new("pacman")
+            PackageManager::Pacman => Command::new("sudo")
+                .arg("pacman")
                 .arg("-Rns")
                 .arg("--noconfirm")
                 .arg(&package)

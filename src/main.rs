@@ -10,12 +10,7 @@ use std::str;
 fn detect_package_manager() -> PackageManager {
     if is_command_available("pacman") {
         PackageManager::Pacman
-    } else if is_command_available("dnf") {
-        PackageManager::Dnf
-    } else if is_command_available("rpm-ostree") {
-        PackageManager::OSTree
-    }
-    else {
+    } else {
         PackageManager::None
     }
 }

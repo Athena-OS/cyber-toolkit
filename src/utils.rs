@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::process::{Command, exit, Stdio};
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::env;
-use std::fs;
+use std::{fs, path::{Path, PathBuf}};
 
 #[derive(Debug, ValueEnum, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PackageManager {
@@ -146,27 +146,41 @@ pub fn exec_eval(result: Result<(), std::io::Error>, logmsg: &str) {
 }
 
 pub fn load_role_packages(role: &str) -> Result<(Vec<String>, String), io::Error> {
-    let candidates = [
-        format!("./{role}.role"),
-        format!("./roles/{role}.role"),
-        format!("/usr/share/cyber-toolkit/roles/{role}.role"),
-    ];
+    // Try to initialize user config (best effort)
+    let mut home_first: Option<String> = None;
+    if let Ok(user_cfg) = ensure_user_config_initialized() {
+        let p = user_cfg.join("roles").join(format!("{role}.role"));
+        home_first = Some(p.to_string_lossy().into_owned());
+    }
+
+    let mut candidates = Vec::<String>::new();
+
+    // 1) ~/.config/cyber-toolkit/roles/<role>.role  (FIRST)
+    if let Some(p) = home_first {
+        candidates.push(p);
+    }
+
+    // 2) ./<role>.role
+    candidates.push(format!("./{role}.role"));
+
+    // 3) ./roles/<role>.role
+    candidates.push(format!("./roles/{role}.role"));
+
+    // 4) /usr/share/cyber-toolkit/roles/<role>.role
+    candidates.push(format!("/usr/share/cyber-toolkit/roles/{role}.role"));
 
     for path in &candidates {
         if let Ok(content) = fs::read_to_string(path) {
             let mut pkgs: Vec<String> = Vec::new();
             for line in content.lines() {
-                // Remove inline comments after '#', then trim
                 let clean = line.split('#').next().unwrap_or("").trim();
                 if !clean.is_empty() {
                     pkgs.push(clean.to_string());
                 }
             }
 
-            // Try to make it absolute; if it fails, keep the found path
             let abs = fs::canonicalize(path).unwrap_or_else(|_| std::path::PathBuf::from(path));
             let abs_str = abs.to_string_lossy().into_owned();
-
             return Ok((pkgs, abs_str));
         }
     }
@@ -177,28 +191,121 @@ pub fn load_role_packages(role: &str) -> Result<(Vec<String>, String), io::Error
     ))
 }
 
+fn home_for_username(username: &str) -> Option<PathBuf> {
+    if username.is_empty() {
+        return None;
+    }
+    if let Ok(contents) = fs::read_to_string("/etc/passwd") {
+        for line in contents.lines() {
+            if line.starts_with('#') || line.trim().is_empty() {
+                continue;
+            }
+            let parts: Vec<&str> = line.split(':').collect();
+            if parts.len() >= 6 && parts[0] == username {
+                return Some(PathBuf::from(parts[5]));
+            }
+        }
+    }
+    None
+}
+
+/// Detect the "real" user's home even if running under sudo or su.
+fn detect_target_home() -> io::Result<PathBuf> {
+    // 1. Check SUDO_USER
+    if let Ok(sudo_user) = std::env::var("SUDO_USER")
+        && !sudo_user.trim().is_empty()
+            && let Some(home) = home_for_username(&sudo_user) {
+                return Ok(home);
+            }
+
+    // 2. Check LOGNAME or USER
+    for var in ["LOGNAME", "USER"] {
+        if let Ok(user) = std::env::var(var)
+            && !user.trim().is_empty() && user != "root"
+                && let Some(home) = home_for_username(&user) {
+                    return Ok(home);
+                }
+    }
+
+    // 3. Try `who am i`
+    if let Ok(output) = Command::new("who").arg("am i").output()
+        && output.status.success()
+            && let Ok(stdout) = String::from_utf8(output.stdout)
+                && let Some(user) = stdout.split_whitespace().next()
+                    && let Some(home) = home_for_username(user) {
+                        return Ok(home);
+                    }
+
+    // 4. Fallback to $HOME (root in worst case)
+    if let Ok(home_env) = std::env::var("HOME") {
+        return Ok(PathBuf::from(home_env));
+    }
+
+    // 5. Last resort
+    Ok(PathBuf::from("/root"))
+}
+
+fn dir_is_empty(p: &Path) -> io::Result<bool> {
+    match fs::read_dir(p) {
+        Ok(mut it) => Ok(it.next().is_none()),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(true),
+        Err(e) => Err(e),
+    }
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> io::Result<()> {
+    if !src.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("Source directory not found: {}", src.display()),
+        ));
+    }
+    if !dst.exists() {
+        fs::create_dir_all(dst)?;
+    }
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+        if ty.is_dir() {
+            copy_dir_recursive(&src_path, &dst_path)?;
+        } else if ty.is_file() {
+            // create parent dir(s) just in case
+            if let Some(parent) = dst_path.parent() {
+                fs::create_dir_all(parent)?;
+            }
+            fs::copy(&src_path, &dst_path)?;
+        }
+    }
+    Ok(())
+}
+
+/// Ensure ~/.config/cyber-toolkit exists, and if it's empty,
+/// copy /usr/share/cyber-toolkit/roles into it.
+pub fn ensure_user_config_initialized() -> io::Result<PathBuf> {
+    let target_home = detect_target_home()?;
+    let user_cfg = target_home.join(".config").join("cyber-toolkit");
+
+    if !user_cfg.exists() {
+        fs::create_dir_all(&user_cfg)?;
+    }
+
+    if dir_is_empty(&user_cfg)? {
+        let src_roles = Path::new("/usr/share/cyber-toolkit/roles");
+        let dst_roles = user_cfg.join("roles");
+        if src_roles.exists() {
+            copy_dir_recursive(src_roles, &dst_roles)?;
+            println!("Copied roles to {}", dst_roles.display());
+        } else {
+            fs::create_dir_all(&dst_roles)?;
+        }
+    }
+
+    Ok(user_cfg)
+}
+
 pub fn crash<S: AsRef<str>>(a: S, b: i32) -> ! {
     println!("{}", a.as_ref());
     exit(b);
 }
-
-/*
-pub fn fastest_mirrors() {
-    println!("Getting fastest BlackArch mirrors for your location");
-    exec_eval(
-        exec(
-            "rate-mirrors",
-            vec![
-                String::from("--concurrency"),
-                String::from("40"),
-                String::from("--disable-comments"),
-                String::from("--allow-root"),
-                String::from("--save"),
-                String::from("/etc/pacman.d/blackarch-mirrorlist"),
-                String::from("blackarch"),
-            ],
-        ),
-        "Getting fastest mirrors from BlackArch",
-    );
-}
-*/

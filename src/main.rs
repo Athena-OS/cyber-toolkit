@@ -59,6 +59,11 @@ fn main() {
         return;
     }
 
+    // Initialize user config & seed roles if needed (best effort, non-fatal on error)
+    if let Err(e) = utils::ensure_user_config_initialized() {
+        eprintln!("Warning: could not initialize ~/.config/cyber-toolkit: {e}");
+    }
+
     let _ = print_banner();
     let known_roles = [
         "blueteamer",

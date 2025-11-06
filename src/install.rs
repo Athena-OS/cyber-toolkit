@@ -42,9 +42,9 @@ pub fn getpayloads() -> Result<(), i32> {
     }
 
     let paysource = vec![
-        "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-small.txt",
-        "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt",
-        "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-big.txt",
+        "/usr/share/seclists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-small.txt",
+        "/usr/share/seclists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-medium.txt",
+        "/usr/share/seclists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-big.txt",
     ];
 
     for paypath in &paysource {
